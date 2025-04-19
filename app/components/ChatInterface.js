@@ -1,0 +1,181 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import { useSession } from 'next-auth/react'
+import dynamic from 'next/dynamic'
+import { io } from 'socket.io-client'
+
+// Dynamic imports
+const SearchBar = dynamic(() => import('./chat/SearchBar'), { ssr: false })
+const Conversations = dynamic(() => import('./chat/Conversations'), { ssr: false })
+const ChatScreen = dynamic(() => import('./chat/ChatScreen'), { ssr: false })
+const NotificationIcon = dynamic(() => import('./chat/NotificationIcon'), { ssr: false })
+const UserProfile = dynamic(() => import('./chat/UserProfile'), { ssr: false })
+
+export default function ChatInterface() {
+    const { data: session } = useSession()
+    const [selectedUser, setSelectedUser] = useState(null)
+    const [socket, setSocket] = useState(null)
+    const [messages, setMessages] = useState([])
+    const [typingStatus, setTypingStatus] = useState(false)
+    const selectedUserRef = useRef(null)
+
+    useEffect(() => {
+        if (!session?.user?.id) return
+
+        selectedUserRef.current = selectedUser
+
+        const newSocket = io('http://localhost:3003', {
+            path: '/socket.io',
+            transports: ['websocket'],
+            withCredentials: true,
+        })
+
+        newSocket.on('connect', () => {
+            console.log('Socket connected')
+            newSocket.emit('join', `user:${session.user.id}`)
+        })
+
+        newSocket.on('disconnect', (reason) => {
+            console.log('Socket disconnected:', reason)
+        })
+
+        newSocket.on('message', (message) => {
+            console.log('New message received:', message)
+            const currentSelectedUser = selectedUserRef.current
+            if (currentSelectedUser && (message.senderId === currentSelectedUser.id || message.receiverId === currentSelectedUser.id)) {
+                setMessages(prev => {
+                    if (prev.some(m => m.id === message.id)) return prev
+                    return [...prev, message]
+                })
+            }
+        })
+
+        newSocket.on('typing:start', (data) => {
+            const currentSelectedUser = selectedUserRef.current
+            if (currentSelectedUser && data.senderId === currentSelectedUser.id) {
+                setTypingStatus(true)
+            }
+        })
+
+        newSocket.on('typing:stop', (data) => {
+            const currentSelectedUser = selectedUserRef.current
+            if (currentSelectedUser && data.senderId === currentSelectedUser.id) {
+                setTypingStatus(false)
+            }
+        })
+
+        setSocket(newSocket)
+
+        return () => {
+            if (newSocket.connected) {
+                newSocket.off('message')
+                newSocket.off('typing:start')
+                newSocket.off('typing:stop')
+                newSocket.disconnect()
+            }
+        }
+    }, [session, selectedUser])
+
+    const handleUserSelect = async (user) => {
+        setSelectedUser(user)
+        try {
+            const response = await fetch(`/api/messages?userId=${user.id}`)
+            if (!response.ok) throw new Error('Failed to fetch messages')
+            const data = await response.json()
+            setMessages(data)
+        } catch (error) {
+            console.error('Error fetching messages:', error)
+        }
+    }
+
+    const handleSendMessage = async (content) => {
+        if (!selectedUser) return
+
+        try {
+            const response = await fetch(`/api/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content, receiverId: selectedUser.id })
+            })
+
+            if (!response.ok) throw new Error('Failed to send message')
+            const message = await response.json()
+
+            // Emit the message through the socket
+            socket.emit('chat:message', {
+                ...message,
+                receiverId: selectedUser.id,
+                senderId: session.user.id,
+                senderName: session.user.name,
+                senderImage: session.user.image
+            })
+
+            setMessages(prev => [...prev, { ...message, isSender: true }])
+        } catch (error) {
+            console.error('Error sending message:', error)
+        }
+    }
+
+    const handleTyping = (isTyping) => {
+        if (!socket || !selectedUser) return
+        const event = isTyping ? 'typing:start' : 'typing:stop'
+        socket.emit(event, {
+            senderId: session.user.id,
+            receiverId: selectedUser.id
+        })
+    }
+
+    return (
+        <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+            {/* Left sidebar */}
+            <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <SearchBar />
+                </div>
+                <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+                    <NotificationIcon />
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                    <Conversations onUserSelect={handleUserSelect} />
+                </div>
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <UserProfile user={session?.user} />
+                </div>
+            </div>
+
+            {/* Right area */}
+            <div className="flex-1 flex flex-col">
+                <div className="h-16 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between px-4">
+                    <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        {selectedUser ? `Chat with ${selectedUser.name}` : 'Select a conversation'}
+                    </h1>
+                </div>
+
+                <div className="flex-1 overflow-hidden">
+                    {selectedUser ? (
+                        <ChatScreen
+                            conversation={{
+                                id: selectedUser.id,
+                                name: selectedUser.name,
+                                avatar: selectedUser.image,
+                                online: selectedUser.online,
+                                lastSeen: selectedUser.lastSeen
+                            }}
+                            messages={messages}
+                            onSendMessage={handleSendMessage}
+                            onTyping={handleTyping}
+                            typingStatus={typingStatus}
+                        />
+                    ) : (
+                        <div className="h-full flex items-center justify-center">
+                            <p className="text-gray-500 dark:text-gray-400">
+                                Select a conversation to start chatting
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}

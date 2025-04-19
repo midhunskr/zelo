@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String?              @unique
+  name                String?
+  emailVerified       DateTime?
+  image               String?
+  hashedPassword      String?
+  accounts            Account[]
+  receivedInvitations FriendInvitation[]   @relation("ReceivedInvitations")
+  sentInvitations     FriendInvitation[]   @relation("SentInvitations")
+  friendships1        Friendship[]         @relation("UserFriendships1")
+  friendships2        Friendship[]         @relation("UserFriendships2")
+  pinnedConversations PinnedConversation[] @relation("UserPinnedConversations")
+  sessions            Session[]
+  sentMessages        Message[]            @relation("SentMessages")
+  receivedMessages    Message[]            @relation("ReceivedMessages")
+  pinnedBy            PinnedConversation[] @relation("ConversationPinnedBy")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
+  receiverId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+model FriendInvitation {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+  receiver   User     @relation("ReceivedInvitations", fields: [receiverId], references: [id])
+  sender     User     @relation("SentInvitations", fields: [senderId], references: [id])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  createdAt DateTime @default(now())
+  user1     User     @relation("UserFriendships1", fields: [user1Id], references: [id])
+  user2     User     @relation("UserFriendships2", fields: [user2Id], references: [id])
+
+  @@unique([user1Id, user2Id])
+}
+
+model PinnedConversation {
+  id            String   @id @default(cuid())
+  userId        String
+  conversationId String
+  isPinned      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation("UserPinnedConversations", fields: [userId], references: [id])
+  conversation  User     @relation("ConversationPinnedBy", fields: [conversationId], references: [id])
+
+  @@unique([userId, conversationId])
+  @@index([userId])
+  @@index([conversationId])
+}
