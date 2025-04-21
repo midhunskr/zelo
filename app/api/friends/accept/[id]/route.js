@@ -170,6 +170,25 @@ export async function POST(request, { params }) {
 
         console.log('Updated invitation:', updatedInvitation)
 
+        // Check if the friendship already exists
+        const existingFriendship = await prisma.friendship.findFirst({
+            where: {
+                OR: [
+                    { user1Id: session.user.id, user2Id: otherUserId },
+                    { user1Id: otherUserId, user2Id: session.user.id }
+                ]
+            }
+        })
+
+        if (!existingFriendship) {
+            await prisma.friendship.create({
+                data: {
+                    user1Id: session.user.id,
+                    user2Id: otherUserId
+                }
+            })
+        }
+
         // Create friendship records for both users
         const friendship = await prisma.friendship.createMany({
             data: [

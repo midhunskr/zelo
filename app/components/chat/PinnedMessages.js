@@ -1,12 +1,29 @@
 'use client'
 
-export default function PinnedMessages({ conversations = [] }) {
+export default function PinnedMessages({ conversations = [], onUserSelect, refreshConversations }) {
     if (conversations.length === 0) {
         return (
             <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-2">
                 No pinned conversations
             </div>
         )
+    }
+
+    const handleUnpin = async (conversationId, e) => {
+        e.stopPropagation()
+        try {
+            const response = await fetch('/api/conversations/pin', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId })
+            })
+            if (!response.ok) throw new Error('Failed to unpin conversation')
+
+            await refreshConversations()
+
+        } catch (error) {
+            console.error('Error unpinning conversation:', error)
+        }
     }
 
     return (
@@ -18,8 +35,9 @@ export default function PinnedMessages({ conversations = [] }) {
                 {conversations.map((conversation) => (
                     <div
                         key={conversation.id}
-                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 
-                                 dark:hover:bg-gray-700 cursor-pointer group"
+                        className="group flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 
+                               dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                        onClick={() => onUserSelect(conversation)}
                     >
                         <div className="relative">
                             <img
@@ -27,9 +45,6 @@ export default function PinnedMessages({ conversations = [] }) {
                                 alt={conversation.name}
                                 className="w-8 h-8 rounded-full"
                             />
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full 
-                                         border-2 border-white dark:border-gray-800">
-                            </span>
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="font-medium text-gray-900 dark:text-white truncate">
@@ -41,11 +56,8 @@ export default function PinnedMessages({ conversations = [] }) {
                         </div>
                         <button
                             className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 
-                                     dark:hover:bg-gray-600 rounded-full transition-opacity"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                // Handle unpin action
-                            }}
+                                 dark:hover:bg-gray-600 rounded-full transition-opacity duration-200"
+                            onClick={(e) => handleUnpin(conversation.id, e)}
                             title="Unpin conversation"
                         >
                             <svg
@@ -67,4 +79,4 @@ export default function PinnedMessages({ conversations = [] }) {
             </div>
         </div>
     )
-} 
+}

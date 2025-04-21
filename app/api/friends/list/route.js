@@ -1,16 +1,15 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
-import prisma from '../../../../lib/prisma';
+import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "../../auth/[...nextauth]/route"
+import prisma from "../../../../lib/prisma"
 
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions)
         if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Get accepted friend invitations
         const acceptedInvitations = await prisma.friendInvitation.findMany({
             where: {
                 OR: [
@@ -39,27 +38,62 @@ export async function GET() {
             orderBy: {
                 createdAt: 'desc'
             }
-        });
+        })
 
-        // Transform the data to show the other user in each conversation
-        const conversations = acceptedInvitations.map(invitation => {
-            const otherUser = invitation.senderId === session.user.id ? invitation.receiver : invitation.sender;
-            return {
-                id: otherUser.id,
-                name: otherUser.name,
-                email: otherUser.email,
-                image: otherUser.image,
-                lastMessage: null, // We'll add this later when implementing messages
-                timestamp: invitation.createdAt
-            };
-        });
+        const otherUsers = acceptedInvitations.map(invitation =>
+            invitation.senderId === session.user.id
+                ? invitation.receiver.id
+                : invitation.sender.id
+        )
 
-        return NextResponse.json(conversations);
+        const pinned = await prisma.pinnedConversation.findMany({
+            where: {
+                userId: session.user.id,
+                conversationId: { in: otherUsers }
+            },
+            select: { conversationId: true }
+        })
+
+        const pinnedIds = pinned.map(p => p.conversationId)
+
+        const deleted = await prisma.deletedConversation.findMany({
+            where: { userId: session.user.id },
+            select: { conversationId: true }
+        })
+
+        const deletedIds = deleted.map(d => d.conversationId)
+
+        const conversations = acceptedInvitations
+            .filter(invitation => {
+                const otherUserId = invitation.senderId === session.user.id
+                    ? invitation.receiver.id
+                    : invitation.sender.id
+                return !deletedIds.includes(otherUserId)
+            })
+            .map(invitation => {
+                const otherUser = invitation.senderId === session.user.id
+                    ? invitation.receiver
+                    : invitation.sender
+
+                const isPinned = pinnedIds.includes(otherUser.id)
+
+                return {
+                    id: otherUser.id,
+                    name: otherUser.name,
+                    email: otherUser.email,
+                    image: otherUser.image,
+                    lastMessage: null,
+                    timestamp: invitation.createdAt,
+                    isPinned
+                }
+            })
+
+        return NextResponse.json(conversations)
     } catch (error) {
-        console.error('Error fetching conversations:', error);
+        console.error('Error fetching conversations:', error)
         return NextResponse.json(
             { error: 'Failed to fetch conversations' },
             { status: 500 }
-        );
+        )
     }
-} 
+}

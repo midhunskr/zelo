@@ -96,6 +96,13 @@ model Friendship {
   @@unique([user1Id, user2Id])
 }
 
+model DeletedConversation {
+  id             String   @id @default(cuid())
+  userId         String
+  conversationId String
+  deletedAt      DateTime @default(now())
+}
+
 model PinnedConversation {
   id            String   @id @default(cuid())
   userId        String
