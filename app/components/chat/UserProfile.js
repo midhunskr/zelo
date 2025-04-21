@@ -32,7 +32,7 @@ export default function UserProfile({ user }) {
                 </div>
             </div>
             <button
-                onClick={() => signOut()}
+                onClick={() => signOut({ callbackUrl: '/signin' })}
                 className="text-sm text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
             >
                 Sign Out
