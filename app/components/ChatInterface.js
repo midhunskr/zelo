@@ -11,6 +11,7 @@ const Conversations = dynamic(() => import('./chat/Conversations'), { ssr: false
 const ChatScreen = dynamic(() => import('./chat/ChatScreen'), { ssr: false })
 const NotificationIcon = dynamic(() => import('./chat/NotificationIcon'), { ssr: false })
 const UserProfile = dynamic(() => import('./chat/UserProfile'), { ssr: false })
+const FriendsList = dynamic(() => import('./chat/FriendsList'), { ssr: false })
 
 export default function ChatInterface() {
     const { data: session } = useSession()
@@ -171,19 +172,34 @@ export default function ChatInterface() {
     }
 
     const handleDeleteConversation = async (conversationId) => {
-        await fetch('/api/conversations/delete', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ conversationId })
-        })
+        try {
+            const response = await fetch('/api/conversations/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId })
+            })
 
-        if (selectedUser?.id === conversationId) {
+            if (!response.ok) {
+                throw new Error('Failed to delete conversation')
+            }
+
+            if (selectedUser?.id === conversationId) {
+                setSelectedUser(null)
+                setMessages([])
+            }
+
+            await fetchFriends()
+        } catch (error) {
+            console.error('Error deleting conversation:', error)
+        }
+    }
+
+    useEffect(() => {
+        if (conversations.length === 0) {
             setSelectedUser(null)
             setMessages([])
         }
-
-        await fetchFriends()
-    }
+    }, [conversations])
 
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
@@ -222,21 +238,16 @@ export default function ChatInterface() {
                 </div>
 
                 <div className="flex-1 overflow-hidden">
-                    {selectedUser ? (() => {
-                        const conversation = {
-                            ...selectedUser,
-                            online: onlineUsers.includes(selectedUser.id),
-                        }
-                        return (
-                            <ChatScreen
-                                conversation={conversation}
-                                messages={messages}
-                                onSendMessage={handleSendMessage}
-                                onTyping={handleTyping}
-                                typingStatus={typingStatus}
-                            />
-                        )
-                    })() : (
+                    {selectedUser ? (
+                        <ChatScreen
+                            conversation={selectedUser}
+                            messages={messages}
+                            onSendMessage={handleSendMessage}
+                            onTyping={handleTyping}
+                            typingStatus={typingStatus}
+                            onlineUsers={onlineUsers}
+                        />
+                    ) : (
                         <div className="h-full flex items-center justify-center">
                             <p className="text-gray-500 dark:text-gray-400">
                                 Select a conversation to start chatting
@@ -244,6 +255,10 @@ export default function ChatInterface() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            <div className="w-80 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
+                <FriendsList onUserSelect={handleUserSelect} />
             </div>
         </div>
     )

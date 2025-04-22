@@ -65,7 +65,7 @@
 //                             alt={conversation.name}
 //                             className="w-10 h-10 rounded-full"
 //                         />
-//                         {conversation.online && (
+//                         {onlineUsers.includes(conversation.id) && (
 //                             <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
 //                         )}
 //                     </div>
@@ -75,7 +75,7 @@
 //                         </div>
 //                         {typingStatus ? (
 //                             <div className="text-sm text-gray-500 dark:text-gray-400">Typing...</div>
-//                         ) : conversation.online ? (
+//                         ) : onlineUsers.includes(conversation.id) ? (
 //                             <div className="text-sm text-green-500">Online</div>
 //                         ) : (
 //                             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -150,7 +150,8 @@ export default function ChatScreen({
     messages,
     onSendMessage,
     onTyping,
-    typingStatus
+    typingStatus,
+    onlineUsers
 }) {
     const { data: session } = useSession()
     const [newMessage, setNewMessage] = useState('')
@@ -201,7 +202,7 @@ export default function ChatScreen({
         if (typingStatus) {
             return <div className="text-sm text-blue-500">Typing...</div>
         }
-        if (conversation.online) {
+        if (onlineUsers.includes(conversation.id)) {
             return <div className="text-sm text-green-500">Online</div>
         }
         return (
@@ -222,7 +223,7 @@ export default function ChatScreen({
                             alt={conversation.name}
                             className="w-10 h-10 rounded-full"
                         />
-                        {conversation.online && (
+                        {onlineUsers.includes(conversation.id) && (
                             <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
                         )}
                     </div>

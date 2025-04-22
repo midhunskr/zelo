@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+// import { useSession } from 'next-auth/react'
 
 export default function Conversations({ conversations, onUserSelect, onDeleteConversation, onlineUsers, refreshConversations }) {
-    const { data: session } = useSession()
+    // const { data: session } = useSession()
     const [settingsOpen, setSettingsOpen] = useState(null)
 
     const handleSettingsClick = (e, conversationId) => {
