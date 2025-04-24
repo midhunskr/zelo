@@ -1,106 +1,92 @@
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import prisma from "../../../../lib/prisma"
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import prisma from '@/lib/prisma'
 
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions)
+        const session = await getServerSession(authOptions);
         if (!session) {
-            console.log('No session found')
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        console.log('Fetching friends for user:', session.user.id)
+        const currentUserId = session.user.id;
 
-        // Get friendships where the current user is either user1 or user2
+        // Fetch friendships
         const friendships = await prisma.friendship.findMany({
             where: {
                 OR: [
-                    { user1Id: session.user.id },
-                    { user2Id: session.user.id }
+                    { user1Id: currentUserId },
+                    { user2Id: currentUserId }
                 ]
             },
             include: {
                 user1: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        image: true
-                    }
+                    select: { id: true, name: true, email: true, image: true }
                 },
                 user2: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        image: true
-                    }
+                    select: { id: true, name: true, email: true, image: true }
                 }
             },
             orderBy: {
                 createdAt: 'desc'
             }
-        })
+        });
 
-        console.log('Found friendships:', friendships)
-
-        // Get pinned conversations
         const pinned = await prisma.pinnedConversation.findMany({
-            where: { userId: session.user.id },
+            where: { userId: currentUserId },
             select: { conversationId: true }
-        })
-        const pinnedIds = pinned.map(p => p.conversationId)
-        console.log('Pinned IDs:', pinnedIds)
+        });
+        const pinnedIds = pinned.map(p => p.conversationId);
 
-        // Get deleted conversations
         const deleted = await prisma.deletedConversation.findMany({
-            where: { userId: session.user.id },
+            where: { userId: currentUserId },
             select: { conversationId: true }
-        })
-        const deletedIds = deleted.map(d => d.conversationId)
-        console.log('Deleted IDs:', deletedIds)
+        });
+        const deletedIds = deleted.map(d => d.conversationId);
 
-        // Process friendships to get unique conversations
-        const conversations = friendships
-            .map(friendship => {
-                // Determine which user is the friend (not the current user)
-                const friend = friendship.user1Id === session.user.id ? friendship.user2 : friendship.user1
-                console.log('Processing friendship:', {
-                    friendshipId: friendship.id,
-                    currentUser: session.user.id,
-                    user1: friendship.user1Id,
-                    user2: friendship.user2Id,
-                    selectedFriend: friend.id
-                })
+        // Prepare and enrich conversations
+        const conversations = await Promise.all(friendships.map(async (friendship) => {
+            const friend = friendship.user1Id === currentUserId ? friendship.user2 : friendship.user1;
 
-                return {
-                    id: friend.id,
-                    name: friend.name,
-                    email: friend.email,
-                    image: friend.image,
-                    lastMessage: null,
-                    timestamp: friendship.createdAt,
-                    isPinned: pinnedIds.includes(friend.id)
-                }
-            })
-            .filter(conversation => !deletedIds.includes(conversation.id))
-            // Remove duplicates by keeping only the first occurrence of each conversation
-            .reduce((unique, conversation) => {
-                if (!unique.some(item => item.id === conversation.id)) {
-                    unique.push(conversation)
-                }
-                return unique
-            }, [])
+            // Skip deleted conversations
+            if (deletedIds.includes(friend.id)) return null;
 
-        console.log('Final conversations:', conversations)
-        return NextResponse.json(conversations)
+            // Check for unread messages
+            const unreadMessage = await prisma.message.findFirst({
+                where: {
+                    senderId: friend.id,
+                    receiverId: currentUserId,
+                    seen: false,
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            return {
+                id: friend.id,
+                name: friend.name,
+                email: friend.email,
+                image: friend.image,
+                lastMessage: null,
+                timestamp: friendship.createdAt,
+                isPinned: pinnedIds.includes(friend.id),
+                unread: !!unreadMessage // ← here we add the unread flag
+            };
+        }));
+
+        const filtered = conversations.filter(Boolean); // Remove nulls
+        const uniqueConversations = filtered.reduce((acc, conv) => {
+            if (!acc.find(c => c.id === conv.id)) acc.push(conv);
+            return acc;
+        }, []);
+
+        return NextResponse.json(uniqueConversations);
+
     } catch (error) {
-        console.error('Error fetching conversations:', error)
+        console.error('Error fetching conversations:', error);
         return NextResponse.json(
             { error: 'Failed to fetch conversations' },
             { status: 500 }
-        )
+        );
     }
 }

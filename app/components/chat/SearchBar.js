@@ -1,16 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function SearchBar() {
     const [query, setQuery] = useState('')
     const [results, setResults] = useState([])
     const [isOpen, setIsOpen] = useState(false)
-    const [pendingRequests, setPendingRequests] = useState({ sent: [], received: [] })
     const searchRef = useRef(null)
-    const { data: session } = useSession()
     const router = useRouter()
 
     useEffect(() => {
@@ -21,27 +18,6 @@ export default function SearchBar() {
         }
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
-
-    // Fetch pending friend requests (sent & received)
-    const fetchPendingRequests = async () => {
-        try {
-            const res = await fetch('/api/friends/pending')
-            const data = await res.json()
-            setPendingRequests({
-                sent: Array.isArray(data.sentInvitations) ? data.sentInvitations : [],
-                received: Array.isArray(data.receivedInvitations) ? data.receivedInvitations : []
-            })
-        } catch (error) {
-            console.error('Error fetching pending requests:', error)
-            setPendingRequests({ sent: [], received: [] })
-        }
-    }
-
-    useEffect(() => {
-        fetchPendingRequests()
-        const interval = setInterval(fetchPendingRequests, 5000)
-        return () => clearInterval(interval)
     }, [])
 
     // Search users as you type
@@ -56,16 +32,7 @@ export default function SearchBar() {
             try {
                 const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`)
                 const data = await res.json()
-
-                const usersWithStatus = data.users.map(user => {
-                    const hasPendingRequest =
-                        pendingRequests.sent.some(req => req.receiverId === user.id) ||
-                        pendingRequests.received.some(req => req.senderId === user.id)
-
-                    return { ...user, hasPendingRequest }
-                })
-
-                setResults(usersWithStatus)
+                setResults(data.users)
                 setIsOpen(true)
             } catch (error) {
                 console.error('Search error:', error)
@@ -75,7 +42,7 @@ export default function SearchBar() {
 
         const debounce = setTimeout(searchUsers, 300)
         return () => clearTimeout(debounce)
-    }, [query, pendingRequests])
+    }, [query])
 
     const handleUserClick = (userId) => {
         setQuery('')
@@ -96,16 +63,41 @@ export default function SearchBar() {
             const data = await res.json()
 
             if (res.ok) {
-                fetchPendingRequests() // refresh request status
+                const updatedResults = results.map(user =>
+                    user.id === userId ? { ...user, invitationStatus: 'PENDING' } : user
+                )
+                setResults(updatedResults)
             } else {
                 if (data.error === 'Friend invitation already exists') {
-                    fetchPendingRequests()
+                    const updatedResults = results.map(user =>
+                        user.id === userId ? { ...user, invitationStatus: 'PENDING' } : user
+                    )
+                    setResults(updatedResults)
                 } else {
                     console.error('Friend request failed:', data.error)
                 }
             }
         } catch (error) {
             console.error('Error sending friend request:', error)
+        }
+    }
+
+    const handleUnfriend = async (userId, e) => {
+        e.stopPropagation()
+        try {
+            const res = await fetch(`/api/friends/unfriend/${userId}`, { method: 'DELETE' })
+            const data = await res.json()
+
+            if (res.ok) {
+                const updatedResults = results.map(user =>
+                    user.id === userId ? { ...user, invitationStatus: 'NONE' } : user
+                )
+                setResults(updatedResults)
+            } else {
+                console.error('Unfriend failed:', data.error)
+            }
+        } catch (error) {
+            console.error('Error unfriending:', error)
         }
     }
 
@@ -160,16 +152,26 @@ export default function SearchBar() {
                                         </p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={(e) => handleAddFriend(user.id, e)}
-                                    disabled={user.hasPendingRequest}
-                                    className={`ml-2 px-3 py-1 text-xs rounded-full ${user.hasPendingRequest
-                                        ? 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
-                                        : 'bg-blue-500 text-white hover:bg-blue-600'
-                                        }`}
-                                >
-                                    {user.hasPendingRequest ? 'Pending' : 'Add Friend'}
-                                </button>
+
+                                {user.invitationStatus === 'FRIEND' ? (
+                                    <button
+                                        onClick={(e) => handleUnfriend(user.id, e)}
+                                        className="ml-2 px-3 py-1 text-xs rounded-full bg-red-500 text-white hover:bg-red-600"
+                                    >
+                                        Unfriend
+                                    </button>
+                                ) : user.invitationStatus === 'PENDING' ? (
+                                    <span className="ml-2 px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400">
+                                        Pending
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={(e) => handleAddFriend(user.id, e)}
+                                        className="ml-2 px-3 py-1 text-xs rounded-full bg-blue-500 text-white hover:bg-blue-600"
+                                    >
+                                        Add Friend
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>

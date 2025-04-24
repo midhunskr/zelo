@@ -43,13 +43,44 @@ export default function ChatInterface() {
             console.log('Socket disconnected:', reason)
         })
 
-        newSocket.on('message', (message) => {
+        newSocket.on('message', async (message) => {
             const currentSelectedUser = selectedUserRef.current
-            if (currentSelectedUser && (message.senderId === currentSelectedUser.id || message.receiverId === currentSelectedUser.id)) {
+
+            const isCurrentChat =
+                currentSelectedUser &&
+                (message.senderId === currentSelectedUser.id || message.receiverId === currentSelectedUser.id)
+
+            if (isCurrentChat) {
                 setMessages(prev => {
                     if (prev.some(m => m.id === message.id)) return prev
                     return [...prev, message]
                 })
+
+                // ✅ Auto mark as seen if the incoming message is from the user you're chatting with
+                if (message.senderId === currentSelectedUser.id) {
+                    try {
+                        await fetch('/api/messages/mark-seen', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: currentSelectedUser.id })
+                        })
+
+                        // ✅ Refresh conversations to update unread status
+                        await fetchFriends()
+                    } catch (error) {
+                        console.error('Failed to mark message as seen:', error)
+                    }
+                }
+            } else {
+                // ✅ Mark this conversation as having unread messages
+                setConversations(prev =>
+                    prev.map(c =>
+                        c.id === message.senderId ? { ...c, unread: true } : c
+                    )
+                )
+
+                // ✅ Trigger background refresh (optional if above logic already sets unread)
+                await fetchFriends()
             }
         })
 
@@ -135,6 +166,11 @@ export default function ChatInterface() {
         } catch (error) {
             console.error('Error fetching messages:', error)
         }
+        await fetch('/api/messages/mark-seen', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id })
+        })
     }
 
     const handleSendMessage = async (content) => {

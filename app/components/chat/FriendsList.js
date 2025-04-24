@@ -8,6 +8,7 @@ export default function FriendsList({ onUserSelect, onlineUsers }) {
     const [friends, setFriends] = useState([])
     const [loading, setLoading] = useState(true)
     const [hoveredFriendId, setHoveredFriendId] = useState(null)
+    const [unfriendConfirmingId, setUnfriendConfirmingId] = useState(null)
     const { data: session } = useSession()
 
     const fetchFriends = async () => {
@@ -25,19 +26,21 @@ export default function FriendsList({ onUserSelect, onlineUsers }) {
         }
     }
 
-    const handleUnfriend = async (friendId) => {
+    const handleUnfriend = (friendId) => {
+        setUnfriendConfirmingId(friendId)
+    }
+
+    const confirmUnfriend = async (friendId) => {
         try {
-            const res = await fetch(`/api/friends/unfriend`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ friendId })
+            const res = await fetch(`/api/friends/unfriend/${friendId}`, {
+                method: 'DELETE',
             })
             if (!res.ok) {
-                throw new Error('Failed to unfriend')
+                throw new Error(`Failed to unfriend: ${res.status}`)
             }
-            console.log('Unfriended:', friendId)
-            // Refresh friend list after unfriending
-            fetchFriends()
+            // Remove friend from UI
+            setFriends(prev => prev.filter(f => f.id !== friendId))
+            setUnfriendConfirmingId(null)
         } catch (error) {
             console.error('Error unfriending:', error)
         }
@@ -83,7 +86,10 @@ export default function FriendsList({ onUserSelect, onlineUsers }) {
                             key={friend.id}
                             className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-3 justify-between"
                             onMouseEnter={() => setHoveredFriendId(friend.id)}
-                            onMouseLeave={() => setHoveredFriendId(null)}
+                            onMouseLeave={() => {
+                                setHoveredFriendId(null)
+                                setUnfriendConfirmingId(null)
+                            }}
                         >
                             <div className="flex items-center space-x-3">
                                 <div className="relative h-10 w-10 rounded-full overflow-hidden">
@@ -111,12 +117,30 @@ export default function FriendsList({ onUserSelect, onlineUsers }) {
                                     >
                                         Message
                                     </button>
-                                    <button
-                                        onClick={() => handleUnfriend(friend.id)}
-                                        className="px-3 py-1 text-xs rounded-full bg-red-500 text-white hover:bg-red-600"
-                                    >
-                                        Unfriend
-                                    </button>
+
+                                    {unfriendConfirmingId === friend.id ? (
+                                        <div className="flex space-x-1">
+                                            <button
+                                                onClick={() => confirmUnfriend(friend.id)}
+                                                className="px-2 py-1 text-xs rounded-full bg-red-500 text-white hover:bg-red-600"
+                                            >
+                                                Yes
+                                            </button>
+                                            <button
+                                                onClick={() => setUnfriendConfirmingId(null)}
+                                                className="px-2 py-1 text-xs rounded-full bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-400"
+                                            >
+                                                No
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleUnfriend(friend.id)}
+                                            className="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300"
+                                        >
+                                            Unfriend
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>

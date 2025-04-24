@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import prisma from '@/lib/prisma'
-import { getIO } from '@/lib/socket'
 
 export async function POST(request) {
     try {
@@ -44,32 +43,6 @@ export async function POST(request) {
             }
         })
 
-        // Get the Socket.IO instance and emit the message
-        // const io = getIO()
-        // if (io) {
-        //     // Emit to both users' rooms
-        //     const senderRoom = `user:${session.user.id}`
-        //     const receiverRoom = `user:${receiverId}`
-
-        //     console.log('Emitting message to rooms:', {
-        //         senderRoom,
-        //         receiverRoom,
-        //         message
-        //     })
-
-        //     // Emit to sender's room
-        //     io.to(senderRoom).emit('message', {
-        //         ...message,
-        //         isSender: true
-        //     })
-
-        //     // Emit to receiver's room
-        //     io.to(receiverRoom).emit('message', {
-        //         ...message,
-        //         isSender: false
-        //     })
-        // }
-
         return NextResponse.json(message)
     } catch (error) {
         console.error('Error creating message:', error)
@@ -106,6 +79,18 @@ export async function GET(request) {
             },
             orderBy: {
                 createdAt: 'asc',
+            },
+        })
+
+        // ✅ Mark messages as seen
+        await prisma.message.updateMany({
+            where: {
+                senderId: userId,
+                receiverId: session.user.id,
+                seen: false,
+            },
+            data: {
+                seen: true,
             },
         })
 
