@@ -6,7 +6,7 @@ const nextConfig = {
         serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
     },
     images: {
-        domains: ['lh3.googleusercontent.com'],
+        domains: ['res.cloudinary.com'],
     },
     // Set the development server port to 3003
     devServer: {
