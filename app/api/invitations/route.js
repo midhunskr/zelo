@@ -1,10 +1,10 @@
+export const dynamic = 'force-dynamic'
+
 import { PrismaClient } from '@prisma/client'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]/route'
 
 const prisma = new PrismaClient()
-
-export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 // Get all invitations for the current user
