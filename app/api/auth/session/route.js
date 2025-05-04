@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../[...nextauth]/route'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function GET() {
     try {

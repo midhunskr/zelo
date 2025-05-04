@@ -1,12 +1,16 @@
-const http = require('http')
-const next = require('next')
-const { initSocket } = require('./lib/socket')
+const http = require('http');
+const next = require('next');
+const { initSocket } = require('./lib/socket.js');
 
 // Development configuration
 const dev = process.env.NODE_ENV !== 'production'
 
 // Initialize Next.js (it will run on port 3000 by default)
-const app = next({ dev })
+const app = next({
+    dev,
+    customServer: true,
+    appDir: true
+})
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {

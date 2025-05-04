@@ -1,4 +1,4 @@
-import { authOptions } from '../[...nextauth]/route'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 export async function POST(request) {
     const body = await request.json()
