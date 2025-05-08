@@ -71,7 +71,7 @@ export default function FriendsList({ onUserSelect, onlineUsers }) {
     }
 
     return (
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto bg-light dark:bg-dark">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Friends</h2>
             </div>

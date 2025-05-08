@@ -109,7 +109,7 @@ export default function SearchBar() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search users..."
-                    className="w-full px-4 py-2 pl-10 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
+                    className="w-full px-4 py-2 pl-10 text-sm text-gray-700 bg-light-accent dark:bg-dark-accent border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:border-gray-600"
                 />
                 <svg
                     className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"

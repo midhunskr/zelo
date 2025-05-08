@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
 import { io } from 'socket.io-client'
 import PinnedMessages from './chat/PinnedMessages'
+import ThemeToggler from './chat/ThemeToggler'
 
 const SearchBar = dynamic(() => import('./chat/SearchBar'), { ssr: false })
 const Conversations = dynamic(() => import('./chat/Conversations'), { ssr: false })
@@ -21,6 +22,7 @@ export default function ChatInterface() {
     const [messages, setMessages] = useState([])
     const [onlineUsers, setOnlineUsers] = useState([])
     const [typingStatus, setTypingStatus] = useState(false)
+    const [theme, setTheme] = useState('light')
     const selectedUserRef = useRef(null)
 
     useEffect(() => {
@@ -43,46 +45,46 @@ export default function ChatInterface() {
             console.log('Socket disconnected:', reason)
         })
 
-        newSocket.on('message', async (message) => {
-            const currentSelectedUser = selectedUserRef.current
+        newSocket.on('message:receive', async (message) => {
+            const currentSelectedUser = selectedUserRef.current;
 
-            const isCurrentChat =
-                currentSelectedUser &&
-                (message.senderId === currentSelectedUser.id || message.receiverId === currentSelectedUser.id)
-
-            if (isCurrentChat) {
+            // Add the message to the chat window if the conversation is selected
+            if (currentSelectedUser && (message.senderId === currentSelectedUser.id || message.receiverId === currentSelectedUser.id)) {
                 setMessages(prev => {
-                    if (prev.some(m => m.id === message.id)) return prev
-                    return [...prev, message]
-                })
+                    if (prev.some(m => m.id === message.id)) return prev;
+                    return [...prev, message];
+                });
 
-                // ✅ Auto mark as seen if the incoming message is from the user you're chatting with
+                // Auto mark as seen if the incoming message is from the selected user
                 if (message.senderId === currentSelectedUser.id) {
                     try {
                         await fetch('/api/messages/mark-seen', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ userId: currentSelectedUser.id })
-                        })
-
-                        // ✅ Refresh conversations to update unread status
-                        await fetchFriends()
+                        });
+                        // Refresh conversations to update unread status
+                        await fetchFriends();
                     } catch (error) {
-                        console.error('Failed to mark message as seen:', error)
+                        console.error('Failed to mark message as seen:', error);
                     }
                 }
             } else {
-                // ✅ Mark this conversation as having unread messages
-                setConversations(prev =>
-                    prev.map(c =>
-                        c.id === message.senderId ? { ...c, unread: true } : c
-                    )
-                )
+                // Update the conversation list with the new message
+                setConversations(prev => {
+                    const updated = prev.map(c => {
+                        if (c.id === message.senderId) {
+                            return { ...c, unread: true, lastMessage: message.content };
+                        }
+                        return c;
+                    });
+                    return updated;
+                });
 
-                // ✅ Trigger background refresh (optional if above logic already sets unread)
-                await fetchFriends()
+                // Trigger a background refresh if needed
+                await fetchFriends();
             }
-        })
+        });
 
         newSocket.on('typing:start', (data) => {
             const currentSelectedUser = selectedUserRef.current
@@ -136,6 +138,37 @@ export default function ChatInterface() {
         }
     }, [session, selectedUser])
 
+    useEffect(() => {
+        if (conversations.length === 0) {
+            setSelectedUser(null)
+            setMessages([])
+        }
+    }, [conversations])
+
+    useEffect(() => {
+        if (session?.user?.id) {
+            fetchFriends()
+            const interval = setInterval(fetchFriends, 5000)
+            return () => clearInterval(interval)
+        }
+    }, [session?.user?.id])
+
+    // Sync theme with localStorage (optional)
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('theme') || 'light'
+        setTheme(savedTheme)
+        document.documentElement.classList.toggle('dark', savedTheme === 'dark')
+    }, [])
+
+    // Theme toggler
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light'
+        setTheme(newTheme)
+        localStorage.setItem('theme', newTheme)
+        document.documentElement.classList.toggle('dark', newTheme === 'dark')
+    }
+
+    // Fetch friends
     const fetchFriends = async () => {
         try {
             const response = await fetch('/api/friends/list')
@@ -147,14 +180,6 @@ export default function ChatInterface() {
             console.error('Error fetching friends:', err)
         }
     }
-
-    useEffect(() => {
-        if (session?.user?.id) {
-            fetchFriends()
-            const interval = setInterval(fetchFriends, 5000)
-            return () => clearInterval(interval)
-        }
-    }, [session?.user?.id])
 
     const handleUserSelect = async (user) => {
         setSelectedUser(user)
@@ -230,19 +255,13 @@ export default function ChatInterface() {
         }
     }
 
-    useEffect(() => {
-        if (conversations.length === 0) {
-            setSelectedUser(null)
-            setMessages([])
-        }
-    }, [conversations])
-
     return (
-        <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-            <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
+        <div className="flex h-screen bg-light dark:bg-dark">
+            <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-light dark:bg-dark flex flex-col">
                 <div className="flex gap-4 items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <NotificationIcon />
                     <SearchBar />
+                    <ThemeToggler theme={theme} onToggle={toggleTheme} />
                 </div>
                 <div>
                     <PinnedMessages
@@ -265,7 +284,7 @@ export default function ChatInterface() {
             </div>
 
             <div className="flex-1 flex flex-col">
-                <div className="h-16 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between px-4">
+                <div className="h-16 border-b border-gray-200 dark:border-gray-700 bg-light dark:bg-dark flex items-center justify-between px-4">
                     <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                         {selectedUser ? `Chat with ${selectedUser.name}` : 'Select a conversation'}
                     </h1>
