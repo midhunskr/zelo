@@ -7,12 +7,12 @@ import { io } from 'socket.io-client'
 import PinnedMessages from './chat/PinnedMessages'
 import ThemeToggler from './chat/ThemeToggler'
 
-const SearchBar = dynamic(() => import('./chat/SearchBar'), { ssr: false })
 const Conversations = dynamic(() => import('./chat/Conversations'), { ssr: false })
 const ChatScreen = dynamic(() => import('./chat/ChatScreen'), { ssr: false })
-const NotificationIcon = dynamic(() => import('./chat/NotificationIcon'), { ssr: false })
 const UserProfile = dynamic(() => import('./chat/UserProfile'), { ssr: false })
 const FriendsList = dynamic(() => import('./chat/FriendsList'), { ssr: false })
+const SearchBar = dynamic(() => import('./chat/SearchBar'), { ssr: false })
+const NotificationIcon = dynamic(() => import('./chat/NotificationIcon'), { ssr: false })
 
 export default function ChatInterface() {
     const { data: session } = useSession()
@@ -22,8 +22,8 @@ export default function ChatInterface() {
     const [messages, setMessages] = useState([])
     const [onlineUsers, setOnlineUsers] = useState([])
     const [typingStatus, setTypingStatus] = useState(false)
-    const [theme, setTheme] = useState('light')
     const selectedUserRef = useRef(null)
+    const [theme, setTheme] = useState('light')
 
     useEffect(() => {
         if (!session?.user?.id) return
@@ -256,62 +256,68 @@ export default function ChatInterface() {
     }
 
     return (
-        <div className="flex h-screen bg-light dark:bg-dark">
-            <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-light dark:bg-dark flex flex-col">
-                <div className="flex gap-4 items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                    <NotificationIcon />
+        <div className="flex h-screen p-20 bg-light-accent dark:bg-dark">
+            <div className='w-80 flex flex-col gap-4'>
+                <div className="flex gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
                     <SearchBar />
-                    <ThemeToggler theme={theme} onToggle={toggleTheme} />
+                    <div className="flex items-center">
+                        <NotificationIcon />
+                        <ThemeToggler theme={theme} onToggle={toggleTheme} />
+                    </div>
                 </div>
-                <div>
-                    <PinnedMessages
-                        conversations={conversations.filter(c => c.isPinned)}
-                        onUserSelect={handleUserSelect}
-                        refreshConversations={fetchFriends} />
+                <div className="h-screen rounded-xl flex flex-col bg-light dark:bg-dark-accent">
+                    <div className='pt-8'>
+                        <PinnedMessages
+                            conversations={conversations.filter(c => c.isPinned)}
+                            onUserSelect={handleUserSelect}
+                            refreshConversations={fetchFriends} />
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        <Conversations
+                            conversations={conversations}
+                            onUserSelect={handleUserSelect}
+                            onDeleteConversation={handleDeleteConversation}
+                            onlineUsers={onlineUsers}
+                            refreshConversations={fetchFriends}
+                        />
+                    </div>
                 </div>
-                <div className="flex-1 overflow-y-auto">
-                    <Conversations
-                        conversations={conversations}
-                        onUserSelect={handleUserSelect}
-                        onDeleteConversation={handleDeleteConversation}
-                        onlineUsers={onlineUsers}
-                        refreshConversations={fetchFriends}
-                    />
-                </div>
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="p-2 rounded-full bg-light dark:bg-dark-accent">
                     <UserProfile user={session?.user} />
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col">
-                <div className="h-16 border-b border-gray-200 dark:border-gray-700 bg-light dark:bg-dark flex items-center justify-between px-4">
+            <div className='flex-1 flex'>
+                <div className="flex-1 flex flex-col">
+                    {/* <div className="h-16  bg-light dark:bg-dark flex items-center justify-between px-4">
                     <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                         {selectedUser ? `Chat with ${selectedUser.name}` : 'Select a conversation'}
                     </h1>
+                </div> */}
+
+                    <div className="flex-1 overflow-hidden px-4">
+                        {selectedUser ? (
+                            <ChatScreen
+                                conversation={selectedUser}
+                                messages={messages}
+                                onSendMessage={handleSendMessage}
+                                onTyping={handleTyping}
+                                typingStatus={typingStatus}
+                                onlineUsers={onlineUsers}
+                            />
+                        ) : (
+                            <div className="h-full flex items-center justify-center">
+                                <p className="text-gray-500 dark:text-gray-400">
+                                    Select a conversation to start chatting
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <div className="flex-1 overflow-hidden">
-                    {selectedUser ? (
-                        <ChatScreen
-                            conversation={selectedUser}
-                            messages={messages}
-                            onSendMessage={handleSendMessage}
-                            onTyping={handleTyping}
-                            typingStatus={typingStatus}
-                            onlineUsers={onlineUsers}
-                        />
-                    ) : (
-                        <div className="h-full flex items-center justify-center">
-                            <p className="text-gray-500 dark:text-gray-400">
-                                Select a conversation to start chatting
-                            </p>
-                        </div>
-                    )}
+                <div className="flex flex-col justify-center">
+                    <FriendsList onUserSelect={handleUserSelect} onlineUsers={onlineUsers} />
                 </div>
-            </div>
-
-            <div className="w-80 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
-                <FriendsList onUserSelect={handleUserSelect} onlineUsers={onlineUsers} />
             </div>
         </div>
     )

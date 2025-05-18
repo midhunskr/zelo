@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
+import { getConsistentAvatar } from './DefaultAvatars'
+import * as motion from 'motion/react-client'
 
 export default function FriendsList({ onUserSelect, onlineUsers }) {
     const [friends, setFriends] = useState([])
@@ -71,64 +73,77 @@ export default function FriendsList({ onUserSelect, onlineUsers }) {
     }
 
     return (
-        <div className="h-full overflow-y-auto bg-light dark:bg-dark">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className='bg-light dark:bg-dark-accent rounded-xl flex flex-col gap-6 p-8 h-full w-72 overflow-y-auto'>
+            <div className="">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Friends</h2>
             </div>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            <div className='flex flex-col gap-5'>
                 {friends.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                    <div className="text-center text-gray-500 dark:text-gray-400">
                         No friends yet
                     </div>
                 ) : (
                     friends.map((friend) => (
                         <div
                             key={friend.id}
-                            className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-3 justify-between"
+                            className="rounded-lg flex items-center justify-between "
                             onMouseEnter={() => setHoveredFriendId(friend.id)}
                             onMouseLeave={() => {
                                 setHoveredFriendId(null)
                                 setUnfriendConfirmingId(null)
                             }}
                         >
-                            <div className="flex items-center space-x-3">
-                                <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                            <div className="relative flex items-center space-x-3">
+                                <div className=" h-13 w-13 rounded-full overflow-hidden">
                                     <Image
-                                        src={friend.image || '/default-avatar.png'}
+                                        src={friend.image || getConsistentAvatar(friend.id)}
                                         alt={friend.name}
-                                        fill
-                                        className="object-cover"
+                                        width={50}
+                                        height={50}
+                                        className='object-cover'
                                     />
                                     {onlineUsers.includes(friend.id) && (
-                                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
+                                        <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full" />
                                     )}
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">{friend.name}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{friend.email}</p>
                                 </div>
                             </div>
 
                             {hoveredFriendId === friend.id && (
                                 <div className="flex space-x-2">
+                                    {/* Message Button */}
                                     <button
                                         onClick={() => onUserSelect(friend)}
-                                        className="px-3 py-1 text-xs rounded-full bg-blue-500 text-white hover:bg-blue-600"
+                                        onMouseEnter={() => setHoveredFriendId(friend.id)}
+                                        onMouseLeave={() => setHoveredFriendId(null)}
+                                        className="w-10 h-10 text-xs flex items-center justify-center rounded-full hover:bg-light-accent dark:hover:bg-zinc-700 dark:hover:bg-opacity-35 transition-colors duration-200"
                                     >
-                                        Message
+                                        <Image
+                                            src={
+                                                hoveredFriendId === friend.id
+                                                    ? '/images/icons8-comments-96-light-hover.png'
+                                                    : '/images/icons8-comments-96-light.png'
+                                            }
+                                            alt="Message"
+                                            width={16}
+                                            height={16}
+                                        />
                                     </button>
 
+                                    {/* Unfriend Button */}
                                     {unfriendConfirmingId === friend.id ? (
                                         <div className="flex space-x-1">
                                             <button
                                                 onClick={() => confirmUnfriend(friend.id)}
-                                                className="px-2 py-1 text-xs rounded-full bg-red-500 text-white hover:bg-red-600"
+                                                className="px-2 py-1 text-xs rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
                                             >
                                                 Yes
                                             </button>
                                             <button
                                                 onClick={() => setUnfriendConfirmingId(null)}
-                                                className="px-2 py-1 text-xs rounded-full bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-400"
+                                                className="px-2 py-1 text-xs rounded-full bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-400 transition-colors duration-200"
                                             >
                                                 No
                                             </button>
@@ -136,9 +151,14 @@ export default function FriendsList({ onUserSelect, onlineUsers }) {
                                     ) : (
                                         <button
                                             onClick={() => handleUnfriend(friend.id)}
-                                            className="px-3 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300"
+                                            className="px-3 py-1 text-xs rounded-full hover:bg-light dark:hover:bg-zinc-700 dark:hover:bg-opacity-35 transition-colors duration-200"
                                         >
-                                            Unfriend
+                                            <Image
+                                                src="/images/icons8-unfriend-100-light.png"
+                                                alt="Unfriend"
+                                                width={16}
+                                                height={16}
+                                            />
                                         </button>
                                     )}
                                 </div>

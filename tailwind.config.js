@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import plugin from 'tailwindcss/plugin';
+
 export const content = [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -11,7 +13,7 @@ export const theme = {
             dark: '#1B1B1B',
             'dark-accent': '#202020',
             light: '#F1F1F1',
-            'light-accent': '#E9E9E9',
+            'light-accent': '#E8E8E8',
             'text-primary-dark': '#111110',
             'text-secondary-dark': '#727272',
             'text-tertiary-dark': '#A8A8A8',
@@ -19,14 +21,10 @@ export const theme = {
             'text-secondary-light': '#A8A8A8',
             'text-tertiary-light': '#4C4C4C',
             orange: '#F5653C',
-            green: '#91E76A',
+            green: '#56D271',
             yellow: '#FDBC32',
             blue: '#37ACF4',
             purple: '#9A6BED',
-        },
-        fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            heading: ['Poppins', 'sans-serif'],
         },
         fontSize: {
             base: '16px',
@@ -46,6 +44,8 @@ export const theme = {
         borderRadius: {
             DEFAULT: '0.5rem',
             lg: '1rem',
+            xl: '1.5rem',
+            '2xl': '2rem',
         },
         boxShadow: {
             card: '0 4px 20px rgba(0, 0, 0, 0.1)',
@@ -53,5 +53,7 @@ export const theme = {
         },
     },
 };
-export const plugins = [];
+export const plugins = [
+    require('tailwind-scrollbar'),
+];
 export const darkMode = 'class';

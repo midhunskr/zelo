@@ -4,8 +4,7 @@ export default function ThemeToggler({ theme, onToggle }) {
     return (
         <button
             onClick={onToggle}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700
-                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 rounded-full hover:bg-light-accent dark:hover:bg-zinc-700 dark:hover:bg-opacity-35"
             title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
             {theme === 'light' ? (

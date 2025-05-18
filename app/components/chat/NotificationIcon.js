@@ -105,7 +105,7 @@ export default function NotificationIcon() {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-2 rounded-full hover:bg-light-accent dark:hover:bg-zinc-700 dark:hover:bg-opacity-35"
             >
                 <svg
                     className="h-6 w-6 text-gray-600 dark:text-gray-300"

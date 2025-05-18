@@ -50,7 +50,7 @@ export default function Conversations({ conversations, onUserSelect, onDeleteCon
                             className="w-10 h-10 rounded-full mr-3"
                         />
                         {onlineUsers.includes(friend.id) && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+                            <span className="absolute -top-1 w-3 h-3 bg-green rounded-full border-2 border-white dark:border-gray-800"></span>
                         )}
                     </div>
 

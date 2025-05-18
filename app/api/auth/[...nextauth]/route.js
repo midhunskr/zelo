@@ -8,11 +8,11 @@ const prisma = new PrismaClient()
 
 export const authOptions = {
     providers: [
-        GoogleProvider({
+        GoogleProvider.default({
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         }),
-        CredentialsProvider({
+        CredentialsProvider.default({
             name: 'Credentials',
             credentials: {
                 email: { label: "Email", type: "email" },
@@ -79,5 +79,5 @@ export const authOptions = {
     debug: process.env.NODE_ENV === 'development'
 }
 
-const handler = NextAuth(authOptions)
+const handler = NextAuth.default(authOptions)
 export { handler as GET, handler as POST } 
