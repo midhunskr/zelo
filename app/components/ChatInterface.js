@@ -316,7 +316,7 @@ export default function ChatInterface() {
                 </div>
 
                 <div className="flex flex-col justify-center">
-                    <FriendsList onUserSelect={handleUserSelect} onlineUsers={onlineUsers} />
+                    <FriendsList onUserSelect={handleUserSelect} onlineUsers={onlineUsers} theme={theme} />
                 </div>
             </div>
         </div>

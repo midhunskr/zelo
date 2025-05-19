@@ -81,16 +81,18 @@ export default function NotificationIcon() {
     const handleReject = async (id) => {
         try {
             setError(null)
-            const response = await fetch(`/api/friends/reject/${id}`, {
+            const response = await fetch(`/api/friends/reject`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include'
+                credentials: 'include',
+                body: JSON.stringify({ requestId: id }) // ✅ Include the ID here
             })
 
             if (!response.ok) {
                 const errorData = await response.json()
+                console.error('Error data:', errorData)
                 throw new Error(errorData.error || 'Failed to reject friend request')
             }
 
@@ -100,6 +102,7 @@ export default function NotificationIcon() {
             setError(error.message)
         }
     }
+
 
     return (
         <div className="relative">
