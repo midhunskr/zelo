@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { io } from 'socket.io-client'
 import PinnedMessages from './chat/PinnedMessages'
 import ThemeToggler from './chat/ThemeToggler'
+import { getConsistentAvatar } from './chat/DefaultAvatars'
 
 const Conversations = dynamic(() => import('./chat/Conversations'), { ssr: false })
 const ChatScreen = dynamic(() => import('./chat/ChatScreen'), { ssr: false })
@@ -261,7 +262,7 @@ export default function ChatInterface() {
                 <div className="flex gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
                     <SearchBar />
                     <div className="flex items-center">
-                        <NotificationIcon />
+                        <NotificationIcon getAvatar={getConsistentAvatar} />
                         <ThemeToggler theme={theme} onToggle={toggleTheme} />
                     </div>
                 </div>
@@ -270,7 +271,8 @@ export default function ChatInterface() {
                         <PinnedMessages
                             conversations={conversations.filter(c => c.isPinned)}
                             onUserSelect={handleUserSelect}
-                            refreshConversations={fetchFriends} />
+                            refreshConversations={fetchFriends}
+                            getAvatar={getConsistentAvatar} />
                     </div>
                     <div className="flex-1 overflow-y-auto">
                         <Conversations
@@ -279,11 +281,12 @@ export default function ChatInterface() {
                             onDeleteConversation={handleDeleteConversation}
                             onlineUsers={onlineUsers}
                             refreshConversations={fetchFriends}
+                            getAvatar={getConsistentAvatar}
                         />
                     </div>
                 </div>
                 <div className="p-2 rounded-full bg-light dark:bg-dark-accent">
-                    <UserProfile user={session?.user} />
+                    <UserProfile user={session?.user} getAvatar={getConsistentAvatar} />
                 </div>
             </div>
 
@@ -306,7 +309,7 @@ export default function ChatInterface() {
                                 onlineUsers={onlineUsers}
                             />
                         ) : (
-                            <div className="h-full flex items-center justify-center">
+                            <div className="h-full flex items-center bg-light dark:bg-dark-accent rounded-xl justify-center">
                                 <p className="text-gray-500 dark:text-gray-400">
                                     Select a conversation to start chatting
                                 </p>

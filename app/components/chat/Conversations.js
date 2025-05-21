@@ -1,8 +1,9 @@
 'use client'
 
+import Image from 'next/image'
 import { useState } from 'react'
 
-export default function Conversations({ conversations, onUserSelect, onDeleteConversation, onlineUsers, refreshConversations }) {
+export default function Conversations({ conversations, onUserSelect, onDeleteConversation, onlineUsers, refreshConversations, getAvatar }) {
     const [settingsOpen, setSettingsOpen] = useState(null)
 
     const handleSettingsClick = (e, conversationId) => {
@@ -38,29 +39,32 @@ export default function Conversations({ conversations, onUserSelect, onDeleteCon
     return (
         <div className="space-y-2 p-4">
             {conversations.map((friend) => (
+                
                 <div
                     key={friend.id}
                     className="relative flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors"
                     onClick={() => onUserSelect(friend)}
                 >
                     <div className="relative">
-                        <img
-                            src={friend.image || '/images/default-avatar.svg'}
+                        <Image
+                            src={friend.image || getAvatar(friend.id)}
                             alt={friend.name}
-                            className="w-10 h-10 rounded-full mr-3"
+                            className="w-12 h-12 rounded-full object-cover mr-3"
+                            width={50}
+                            height={50}
                         />
                         {onlineUsers.includes(friend.id) && (
-                            <span className="absolute -top-1 w-3 h-3 bg-green rounded-full border-2 border-white dark:border-gray-800"></span>
+                            <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light"></span>
                         )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                            <p className={`truncate ${friend.unread ? 'font-extrabold text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'}`}>
+                            <p className={`truncate ${friend.unread ? 'font-extrabold text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white font-medium'}`}>
                                 {friend.name}
                             </p>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {friend.lastMessageTime}
+                                {friend.content}
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -83,19 +87,19 @@ export default function Conversations({ conversations, onUserSelect, onDeleteCon
                     </button>
 
                     {settingsOpen === friend.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50" style={{ top: '100%' }}>
+                        <div className="absolute right-0 mt-2 w-48 bg-light dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50" style={{ top: '100%' }}>
                             <div className="py-1">
                                 <button
                                     onClick={() => handlePin(friend.id)}
                                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 >
-                                    📌 Pin conversation
+                                    📌 Pin
                                 </button>
                                 <button
                                     onClick={() => onDeleteConversation(friend.id)}
                                     className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 >
-                                    🗑️ Delete conversation
+                                    🗑️ Delete
                                 </button>
                             </div>
                         </div>

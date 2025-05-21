@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 
-export default function NotificationIcon() {
+export default function NotificationIcon(getAvatar) {
     const { data: session, status } = useSession()
     const [notifications, setNotifications] = useState([])
     const [isOpen, setIsOpen] = useState(false)
@@ -161,7 +161,7 @@ export default function NotificationIcon() {
                                         <div className="flex items-center space-x-3">
                                             <div className="flex-shrink-0">
                                                 <img
-                                                    src={notification.sender.image || '/images/default-avatar.svg'}
+                                                    src={notification.sender.image || getAvatar(notification.sender.id)}
                                                     alt={notification.sender.name}
                                                     className="w-8 h-8 rounded-full mr-3"
                                                 />
@@ -178,7 +178,7 @@ export default function NotificationIcon() {
                                         <div className="flex space-x-2">
                                             <button
                                                 onClick={() => handleAccept(notification.id)}
-                                                className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                className="px-3 py-1 text-xs font-medium text-white bg-green rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                             >
                                                 Accept
                                             </button>

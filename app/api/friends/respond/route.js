@@ -26,7 +26,7 @@ export async function POST(request) {
         }
 
         // Find the friend request
-        const friendRequest = await prisma.friendRequest.findUnique({
+        const friendRequest = await prisma.friendInvitation.findUnique({
             where: { id: requestId },
             include: {
                 sender: true,
@@ -79,7 +79,7 @@ export async function POST(request) {
             });
         } else {
             // Update request status to REJECTED
-            await prisma.friendRequest.update({
+            await prisma.friendInvitation.update({
                 where: { id: requestId },
                 data: { status: 'REJECTED' }
             });

@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import EditProfileModal from './EditProfileModal'
+import Image from 'next/image'
 
-export default function UserProfile({ user }) {
+export default function UserProfile({ user, getAvatar }) {
     const { data: session } = useSession()
     const currentUser = user || session?.user
     const [modalOpen, setModalOpen] = useState(false)
@@ -19,12 +20,14 @@ export default function UserProfile({ user }) {
 
     return (
         <>
-            <div className="flex items-center justify-between p-4">
+            <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setModalOpen(true)}>
-                    <img
-                        src={currentUser.image || '/default-avatar.png'}
+                    <Image
+                        src={currentUser.image || getAvatar(currentUser.id)}
                         alt={currentUser.name}
-                        className="w-10 h-10 rounded-full"
+                        width={50}
+                        height={50}
+                        className="w-12 h-12 object-cover rounded-full"
                     />
                     <div>
                         <p className="font-medium text-gray-900 dark:text-white">{currentUser.name}</p>
