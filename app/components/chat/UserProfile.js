@@ -4,10 +4,13 @@ import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import EditProfileModal from './EditProfileModal'
 import Image from 'next/image'
+import { getConsistentAvatar } from '../chat/DefaultAvatars'
 
 export default function UserProfile({ user, getAvatar }) {
     const { data: session } = useSession()
     const currentUser = user || session?.user
+    console.log(session)
+    
     const [modalOpen, setModalOpen] = useState(false)
 
     if (!currentUser) {
@@ -43,7 +46,7 @@ export default function UserProfile({ user, getAvatar }) {
             </div>
 
             {modalOpen && (
-                <EditProfileModal user={currentUser} onClose={() => setModalOpen(false)} />
+                <EditProfileModal user={currentUser} onClose={() => setModalOpen(false)} getAvatar={getConsistentAvatar} />
             )}
         </>
     )

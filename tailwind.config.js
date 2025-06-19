@@ -52,6 +52,15 @@ export const theme = {
             button: '0 2px 10px rgba(0, 0, 0, 0.1)',
         },
     },
+    screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
+        '2xl': '1536px',
+        'max-md': { 'max': '767px' }, // Target screens smaller than 768px
+        'between-md-lg': { 'min': '768px', 'max': '1023px' },
+    }
 };
 export const plugins = [
     require('tailwind-scrollbar'),

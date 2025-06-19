@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { toast } from 'react-hot-toast'
 import Image from 'next/image'
 
-export default function EditProfileModal({ onClose }) {
+export default function EditProfileModal({ onClose, getAvatar }) {
     const { data: session, update } = useSession()
     const user = session?.user
 
@@ -75,67 +75,71 @@ export default function EditProfileModal({ onClose }) {
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg">
-                <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Edit Profile</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-light dark:bg-dark-accent p-6 rounded-xl w-full max-w-md shadow-lg">
+                <h2 className="text-lg font-semibold mb-4 text-text-primary-dark dark:text-text-primary-light">Edit Profile</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex">
                     <div className="flex items-center space-x-4">
                         <Image
-                            src={formData.image || '/default-avatar.png'}
+                            src={formData.image || getAvatar(session.user.id)}
                             alt="Avatar"
                             width={48}
                             height={48}
                             className="rounded-full object-cover"
                         />
-                        <label className="text-sm font-medium text-blue-500 cursor-pointer">
+                        <label className="text-sm font-medium text-text-primary-dark dark:text-text-primary-light cursor-pointer">
                             Change Avatar
                             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                         </label>
                     </div>
 
-                    <input
-                        type="text"
-                        name="name"
-                        placeholder="Name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
-                    />
+                    <div>
+                        <div className='flex flex-col'>
+                            <input
+                                type="text"
+                                name="name"
+                                placeholder="Name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 rounded dark:bg-zinc-700 dark:bg-opacity-60 dark:text-light placeholder:text-text-primary-dark dark:placeholder:text-text-secondary-light"
+                            />
 
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
-                    />
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 rounded dark:bg-zinc-700 dark:bg-opacity-60 dark:text-light placeholder:text-text-primary-dark dark:placeholder:text-text-secondary-light"
+                            />
 
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="New password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
-                    />
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="New password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 rounded dark:bg-zinc-700 dark:bg-opacity-60 dark:text-light placeholder:text-text-primary-dark dark:placeholder:text-text-secondary-light"
+                            />
+                        </div>
 
-                    <div className="flex justify-end space-x-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            Save
-                        </button>
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="w-20 h-8 text-text-primary-dark dark:text-text-primary-light text-sm bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-20 h-8 text-sm bg-blue text-light rounded hover:bg-blue"
+                            >
+                                Save
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

@@ -55,6 +55,7 @@ export default function ChatInterface() {
                     if (prev.some(m => m.id === message.id)) return prev;
                     return [...prev, message];
                 });
+                console.log("MESSAGE", message);
 
                 // Auto mark as seen if the incoming message is from the selected user
                 if (message.senderId === currentSelectedUser.id) {
@@ -73,12 +74,27 @@ export default function ChatInterface() {
             } else {
                 // Update the conversation list with the new message
                 setConversations(prev => {
+                    if (!prev.length) {
+                        return [{
+                            id: message.senderId,
+                            unread: true,
+                            lastMessage: message.content,
+                            name: message.sender?.name || 'Unknown',
+                            image: message.sender?.image || null,
+                        }];
+                    }
+                    console.log("ID", id);
+
+
                     const updated = prev.map(c => {
+                        console.log('Checking match:', { cId: c.id, senderId: message.senderId });
                         if (c.id === message.senderId) {
+                            console.log("MATCH FOUND: Updating conversation");
                             return { ...c, unread: true, lastMessage: message.content };
                         }
                         return c;
                     });
+                    console.log("MESSAGE", updated);
                     return updated;
                 });
 
@@ -259,7 +275,7 @@ export default function ChatInterface() {
     return (
         <div className="flex h-screen p-20 bg-light-accent dark:bg-dark">
             <div className='w-80 flex flex-col gap-4'>
-                <div className="flex gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
+                <div className="hidden md:flex gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
                     <SearchBar />
                     <div className="flex items-center">
                         <NotificationIcon getAvatar={getConsistentAvatar} />
@@ -286,40 +302,39 @@ export default function ChatInterface() {
                     </div>
                 </div>
                 <div className="p-2 rounded-full bg-light dark:bg-dark-accent">
-                    <UserProfile user={session?.user} getAvatar={getConsistentAvatar} />
+                    <UserProfile user={session?.user} getAvatar={getConsistentAvatar} conversations={conversations} />
                 </div>
             </div>
 
-            <div className='flex-1 flex'>
-                <div className="flex-1 flex flex-col">
-                    {/* <div className="h-16  bg-light dark:bg-dark flex items-center justify-between px-4">
-                    <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {selectedUser ? `Chat with ${selectedUser.name}` : 'Select a conversation'}
-                    </h1>
-                </div> */}
-
-                    <div className="flex-1 overflow-hidden px-4">
-                        {selectedUser ? (
-                            <ChatScreen
-                                conversation={selectedUser}
-                                messages={messages}
-                                onSendMessage={handleSendMessage}
-                                onTyping={handleTyping}
-                                typingStatus={typingStatus}
-                                onlineUsers={onlineUsers}
-                            />
-                        ) : (
-                            <div className="h-full flex items-center bg-light dark:bg-dark-accent rounded-xl justify-center">
-                                <p className="text-gray-500 dark:text-gray-400">
-                                    Select a conversation to start chatting
-                                </p>
-                            </div>
-                        )}
-                    </div>
+            <div className='flex-1 flex flex-col lg:flex-row'>
+                <div className="hidden md:block md:flex-1 overflow-hidden px-4">
+                    {selectedUser ? (
+                        <ChatScreen
+                            conversation={selectedUser}
+                            messages={messages}
+                            onSendMessage={handleSendMessage}
+                            onTyping={handleTyping}
+                            typingStatus={typingStatus}
+                            onlineUsers={onlineUsers}
+                        />
+                    ) : (
+                        <div className="h-full flex items-center bg-light dark:bg-dark-accent rounded-xl justify-center">
+                            <p className="text-gray-500 dark:text-gray-400">
+                                Select a conversation to start chatting
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-col justify-center">
                     <FriendsList onUserSelect={handleUserSelect} onlineUsers={onlineUsers} theme={theme} />
+                    <div className="flex md:hidden gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
+                        <SearchBar />
+                        <div className="flex items-center">
+                            <NotificationIcon getAvatar={getConsistentAvatar} />
+                            <ThemeToggler theme={theme} onToggle={toggleTheme} />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

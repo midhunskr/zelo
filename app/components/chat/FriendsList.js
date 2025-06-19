@@ -87,14 +87,14 @@ export default function FriendsList({ onUserSelect, onlineUsers, theme }) {
     }
 
     return (
-        <div className='bg-light dark:bg-dark-accent rounded-xl flex flex-col gap-6 p-8 h-full w-72 overflow-y-auto'>
+        <div className='bg-light dark:bg-dark-accent rounded-lg md:rounded-xl flex flex-col gap-6 p-8 h-full w-72 overflow-y-auto border-gradient'>
             <div className="hidden">
                 <Lottie animationData={messageLight} />
                 <Lottie animationData={messageDark} />
                 <Lottie animationData={deleteLight} />
                 <Lottie animationData={deleteDark} />
             </div>
-            <div className="">
+            <div className="hidden md:block">
                 <h2 className="text-lg font-semibold text-text-primary-dark dark:text-text-primary-light">Friends</h2>
             </div>
             <div className='flex flex-col gap-5'>
@@ -106,9 +106,9 @@ export default function FriendsList({ onUserSelect, onlineUsers, theme }) {
                     friends.map((friend) => (
                         <div
                             key={friend.id}
-                            className="relative rounded-full flex items-center justify-between"
+                            className="relative flex rounded-full items-center justify-between"
                         >
-                            <div className="relative flex items-center space-x-3">
+                            <div className="relative hidden md:flex items-center space-x-3">
                                 <div className="rounded-full overflow-hidden">
                                     <Image
                                         src={friend.image || getConsistentAvatar(friend.id)}
@@ -126,7 +126,7 @@ export default function FriendsList({ onUserSelect, onlineUsers, theme }) {
                                 </div>
                             </div>
 
-                            <div className="flex space-x-2">
+                            <div className="hidden md:flex space-x-2">
                                 {/* Message Button */}
                                 <button
                                     onClick={() => onUserSelect(friend)}

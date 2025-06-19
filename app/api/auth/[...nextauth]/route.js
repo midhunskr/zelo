@@ -62,6 +62,7 @@ export const authOptions = {
                 token.id = user.id
                 token.email = user.email
                 token.name = user.name
+                token.image = user.image || null
             }
             return token
         },
@@ -70,6 +71,7 @@ export const authOptions = {
                 session.user.id = token.id
                 session.user.email = token.email
                 session.user.name = token.name
+                session.user.image = token.image || null
                 console.log('Session:', session)
             }
             return session

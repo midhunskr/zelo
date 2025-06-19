@@ -4,6 +4,10 @@ import { useState, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { getConsistentAvatar } from './DefaultAvatars'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
+const Lottie = dynamic(() => import('lottie-react').then(mod => mod.default), { ssr: false })
+import typingBlue from '@/app/animations/typing-blue.json'
+import typingGreen from '@/app/animations/typing-green.json'
 
 export default function ChatScreen({
     conversation,
@@ -11,7 +15,7 @@ export default function ChatScreen({
     onSendMessage,
     onTyping,
     typingStatus,
-    onlineUsers
+    onlineUsers,
 }) {
     const { data: session } = useSession()
     const [newMessage, setNewMessage] = useState('')
@@ -24,8 +28,11 @@ export default function ChatScreen({
     }
 
     useEffect(() => {
+        if (typingStatus && messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+        }
         scrollToBottom()
-    }, [messages])
+    }, [messages, typingStatus])
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -59,9 +66,6 @@ export default function ChatScreen({
 
     // Status rendering logic
     const renderStatus = () => {
-        if (typingStatus) {
-            return <div className="text-sm text-blue">Typing...</div>
-        }
         if (onlineUsers.includes(conversation.id)) {
             return <div className="text-sm text-green">Online</div>
         }
@@ -74,6 +78,10 @@ export default function ChatScreen({
 
     return (
         <div className="p-4 flex flex-col h-full rounded-xl bg-light dark:bg-dark-accent">
+            <div className="hidden">
+                <Lottie animationData={typingBlue} />
+                <Lottie animationData={typingGreen} />
+            </div>
             {/* Chat header */}
             <div className="flex items-center px-4 py-3">
                 <div className="flex items-center flex-1 min-w-0">
@@ -108,8 +116,8 @@ export default function ChatScreen({
                     >
                         <div
                             className={`max-w-xs lg:max-w-md rounded-lg p-3 ${message.senderId === session?.user?.id
-                                    ? 'bg-blue text-white'
-                                    : 'bg-light-accent text-dark dark:bg-zinc-700 dark:bg-opacity-35 dark:text-light'
+                                ? 'bg-blue text-text-primary-light'
+                                : 'bg-light-accent text-dark dark:bg-zinc-700 dark:bg-opacity-35 dark:text-text-primary-light'
                                 }`}
                         >
                             <p className="text-sm">{message.content}</p>
@@ -120,6 +128,17 @@ export default function ChatScreen({
                         </div>
                     </div>
                 ))}
+
+                {/* ✅ Typing Indicator: always rendered, visibility toggled */}
+                <div
+                    className={`
+                        transition-all duration-300 ease-in-out
+                        flex items-center justify-center w-20 h-12 rounded-lg
+                        ${typingStatus ? 'opacity-100 max-h-12' : 'opacity-0 max-h-0 overflow-hidden'}
+                    `}
+                >
+                    <Lottie animationData={typingBlue} loop className="w-16 h-16" />
+                </div>
                 <div ref={messagesEndRef} />
             </div>
 
@@ -139,9 +158,9 @@ export default function ChatScreen({
                     <button
                         type="submit"
                         disabled={!newMessage.trim()}
-                        className="w-10 h-10 flex justify-center items-center bg-blue-500 text-light rounded-full bg-blue focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-10 h-10 flex justify-center items-center bg-blue-500 text-light rounded-full bg-blue disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <svg className='w-[1.4rem] h-[1.4rem] pr-1' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#f1f1f1" d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480l0-83.6c0-4 1.5-7.8 4.2-10.8L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z"/></svg>
+                        <svg className='w-[1.4rem] h-[1.4rem] pr-1' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#f1f1f1" d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480l0-83.6c0-4 1.5-7.8 4.2-10.8L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z" /></svg>
                     </button>
                 </div>
             </form>

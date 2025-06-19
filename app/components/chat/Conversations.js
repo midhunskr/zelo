@@ -38,8 +38,7 @@ export default function Conversations({ conversations, onUserSelect, onDeleteCon
 
     return (
         <div className="space-y-2 p-4">
-            {conversations.map((friend) => (
-                
+            {conversations.map((friend) => (            
                 <div
                     key={friend.id}
                     className="relative flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors"

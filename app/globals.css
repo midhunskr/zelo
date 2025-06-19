@@ -5,11 +5,16 @@
 /* :root {
     --foreground-rgb: 0, 0, 0;
     --background-rgb: 255, 255, 255;
-}
+} */
 
-body {
+/* body {
     color: rgb(var(--foreground-rgb));
     background: rgb(var(--background-rgb));
 } */
 
 /* HTML: <div class="arc"></div> */
+
+.border-gradient {
+    /* background: linear-gradient(to bottom, rgba(253, 253, 253, 0.015000000819563875) 0%, rgba(253, 253, 253, 0.05000000074505806) 100%); */
+    border: 1.5px solid linear-gradient(to bottom, rgba(241, 241, 241, 0.10000000149011612) 0%, rgba(241, 241, 241, 0.07500000111758709) 100%);
+}
