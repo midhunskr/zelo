@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { toast } from 'react-hot-toast'
-import Image from 'next/image'
+import { getConsistentAvatar } from './DefaultAvatars'
 
 export default function EditProfileModal({ onClose, getAvatar }) {
     const { data: session, update } = useSession()
     const user = session?.user
+    const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(user.id, 'w-[4rem] h-[4rem] md:w-[3rem]')
 
     const [formData, setFormData] = useState({
         name: user?.name || '',
@@ -79,14 +80,17 @@ export default function EditProfileModal({ onClose, getAvatar }) {
             <div className="bg-light dark:bg-dark-accent p-6 rounded-xl w-full max-w-md shadow-lg">
                 <h2 className="text-lg font-semibold mb-4 text-text-primary-dark dark:text-text-primary-light">Edit Profile</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-4 flex">
-                    <div className="flex items-center space-x-4">
-                        <Image
-                            src={formData.image || getAvatar(session.user.id)}
+                <form onSubmit={handleSubmit} className="flex">
+                    <div className="flex space-x-4">
+                        <div
+                            style={{
+                            backgroundImage: `url(${formData.image || avatarUrl})`,
+                            backgroundColor,
+                        }}
                             alt="Avatar"
                             width={48}
                             height={48}
-                            className="rounded-full object-cover"
+                            className={`${sizeClass} bg-contain bg-top bg-no-repeat md:h-[3rem] rounded-full mr-3`}
                         />
                         <label className="text-sm font-medium text-text-primary-dark dark:text-text-primary-light cursor-pointer">
                             Change Avatar
@@ -94,8 +98,8 @@ export default function EditProfileModal({ onClose, getAvatar }) {
                         </label>
                     </div>
 
-                    <div>
-                        <div className='flex flex-col'>
+                    <div className='flex flex-col space-y-4'>
+                        <div className='flex flex-col space-y-2'>
                             <input
                                 type="text"
                                 name="name"

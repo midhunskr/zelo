@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { getConsistentAvatar } from './DefaultAvatars'
 
 export default function NotificationIcon(getAvatar) {
     const { data: session, status } = useSession()
@@ -161,7 +162,7 @@ export default function NotificationIcon(getAvatar) {
                                         <div className="flex items-center space-x-3">
                                             <div className="flex-shrink-0">
                                                 <img
-                                                    src={notification.sender.image || getAvatar(notification.sender.id)}
+                                                    src={notification.sender.image || getConsistentAvatar(notification.sender.id)}
                                                     alt={notification.sender.name}
                                                     className="w-8 h-8 rounded-full mr-3"
                                                 />

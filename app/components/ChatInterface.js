@@ -7,6 +7,7 @@ import { io } from 'socket.io-client'
 import PinnedMessages from './chat/PinnedMessages'
 import ThemeToggler from './chat/ThemeToggler'
 import { getConsistentAvatar } from './chat/DefaultAvatars'
+import BottomTabBar from './chat/BottomTabBar'
 
 const Conversations = dynamic(() => import('./chat/Conversations'), { ssr: false })
 const ChatScreen = dynamic(() => import('./chat/ChatScreen'), { ssr: false })
@@ -273,7 +274,7 @@ export default function ChatInterface() {
     }
 
     return (
-        <div className="flex h-screen p-20 bg-light-accent dark:bg-dark">
+        <div className="md:flex md:h-screen md:p-20 bg-light-accent dark:bg-dark">
             <div className='w-80 flex flex-col gap-4'>
                 <div className="hidden md:flex gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
                     <SearchBar />
@@ -282,15 +283,15 @@ export default function ChatInterface() {
                         <ThemeToggler theme={theme} onToggle={toggleTheme} />
                     </div>
                 </div>
-                <div className="h-screen rounded-xl flex flex-col bg-light dark:bg-dark-accent">
-                    <div className='pt-8'>
+                <div className="h-screen rounded-xl hidden md:flex flex-col space-y-4 bg-light dark:bg-dark-accent">
+                    <div className='h-[30%]'>
                         <PinnedMessages
                             conversations={conversations.filter(c => c.isPinned)}
                             onUserSelect={handleUserSelect}
                             refreshConversations={fetchFriends}
                             getAvatar={getConsistentAvatar} />
                     </div>
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto h-[70%]">
                         <Conversations
                             conversations={conversations}
                             onUserSelect={handleUserSelect}
@@ -301,7 +302,7 @@ export default function ChatInterface() {
                         />
                     </div>
                 </div>
-                <div className="p-2 rounded-full bg-light dark:bg-dark-accent">
+                <div className="hidden md:block p-2 rounded-full bg-light dark:bg-dark-accent">
                     <UserProfile user={session?.user} getAvatar={getConsistentAvatar} conversations={conversations} />
                 </div>
             </div>
@@ -326,15 +327,33 @@ export default function ChatInterface() {
                     )}
                 </div>
 
-                <div className="flex flex-col justify-center">
+                <div className="hidden md:flex">
                     <FriendsList onUserSelect={handleUserSelect} onlineUsers={onlineUsers} theme={theme} />
-                    <div className="flex md:hidden gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
-                        <SearchBar />
-                        <div className="flex items-center">
-                            <NotificationIcon getAvatar={getConsistentAvatar} />
-                            <ThemeToggler theme={theme} onToggle={toggleTheme} />
+                </div>
+                {/* Mobile Screen */}
+                <div className='md:hidden p-4 flex flex-col gap-4 h-screen'>
+                    <FriendsList onUserSelect={handleUserSelect} onlineUsers={onlineUsers} theme={theme} />
+                    <SearchBar />
+                    <div className='h-full'>
+                        <div className='h-full flex flex-col md:block gap-2 p-[.4rem] bg-card-light-outer dark:bg-card-dark-outer rounded-xl
+                                        border border-card-stroke-light dark:border-card-stroke-dark'>                          
+                            <PinnedMessages
+                                conversations={conversations.filter(c => c.isPinned)}
+                                onUserSelect={handleUserSelect}
+                                refreshConversations={fetchFriends}
+                                getAvatar={getConsistentAvatar}
+                            />
+                            <Conversations
+                                conversations={conversations}
+                                onUserSelect={handleUserSelect}
+                                onDeleteConversation={handleDeleteConversation}
+                                onlineUsers={onlineUsers}
+                                refreshConversations={fetchFriends}
+                                getAvatar={getConsistentAvatar}
+                            />
                         </div>
                     </div>
+                    <BottomTabBar />
                 </div>
             </div>
         </div>

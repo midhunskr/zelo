@@ -3,14 +3,13 @@
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import EditProfileModal from './EditProfileModal'
-import Image from 'next/image'
-import { getConsistentAvatar } from '../chat/DefaultAvatars'
+import { getConsistentAvatar } from './DefaultAvatars'
 
 export default function UserProfile({ user, getAvatar }) {
     const { data: session } = useSession()
     const currentUser = user || session?.user
     console.log(session)
-    
+    const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(currentUser.id, 'w-[4rem] h-[4rem] md:w-[3rem]')
     const [modalOpen, setModalOpen] = useState(false)
 
     if (!currentUser) {
@@ -25,12 +24,12 @@ export default function UserProfile({ user, getAvatar }) {
         <>
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setModalOpen(true)}>
-                    <Image
-                        src={currentUser.image || getAvatar(currentUser.id)}
-                        alt={currentUser.name}
-                        width={50}
-                        height={50}
-                        className="w-12 h-12 object-cover rounded-full"
+                    <div
+                        className={`${sizeClass} bg-contain bg-top bg-no-repeat md:h-[3rem] rounded-full mr-3`}
+                        style={{
+                            backgroundImage: `url(${currentUser.image || avatarUrl})`,
+                            backgroundColor,
+                        }}
                     />
                     <div>
                         <p className="font-medium text-gray-900 dark:text-white">{currentUser.name}</p>

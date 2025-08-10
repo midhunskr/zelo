@@ -11,6 +11,7 @@ import messageLight from '@/app/animations/message-light.json'
 import messageDark from '@/app/animations/message-dark.json'
 import deleteLight from '@/app/animations/delete-light.json'
 import deleteDark from '@/app/animations/delete-dark.json'
+import useIsMobile from '@/app/hooks/useIsMobile'
 
 export default function FriendsList({ onUserSelect, onlineUsers, theme }) {
     const [friends, setFriends] = useState([])
@@ -20,6 +21,7 @@ export default function FriendsList({ onUserSelect, onlineUsers, theme }) {
     const [unfriendConfirmingId, setUnfriendConfirmingId] = useState(null)
     const { data: session } = useSession()
     const [unfriendingId, setUnfriendingId] = useState(null)
+    const isMobile = useIsMobile()
 
     const fetchFriends = async () => {
         try {
@@ -87,120 +89,161 @@ export default function FriendsList({ onUserSelect, onlineUsers, theme }) {
     }
 
     return (
-        <div className='bg-light dark:bg-dark-accent rounded-lg md:rounded-xl flex flex-col gap-6 p-8 h-full w-72 overflow-y-auto border-gradient'>
+        <div className='md:flex flex-col md:w-72 h-[6rem] md:h-full p-[.4rem] md:p-0 bg-card-light-outer dark:bg-card-dark-outer md:bg-light md:dark:bg-dark-accent
+                        rounded-lg md:rounded-xl md:border-none border border-card-stroke-light dark:border-card-stroke-dark'>
             <div className="hidden">
                 <Lottie animationData={messageLight} />
                 <Lottie animationData={messageDark} />
                 <Lottie animationData={deleteLight} />
                 <Lottie animationData={deleteDark} />
             </div>
-            <div className="hidden md:block">
-                <h2 className="text-lg font-semibold text-text-primary-dark dark:text-text-primary-light">Friends</h2>
-            </div>
-            <div className='flex flex-col gap-5'>
-                {friends.length === 0 ? (
-                    <div className="text-center text-gray-500 dark:text-gray-400">
-                        No friends yet
-                    </div>
+            {isMobile ? (
+                friends.length === 0 ? (
+                    <div className='text-center text-gray-500 dark:text-gray-400 py-5'>No friends yet</div>
                 ) : (
-                    friends.map((friend) => (
-                        <div
-                            key={friend.id}
-                            className="relative flex rounded-full items-center justify-between"
-                        >
-                            <div className="relative hidden md:flex items-center space-x-3">
-                                <div className="rounded-full overflow-hidden">
-                                    <Image
-                                        src={friend.image || getConsistentAvatar(friend.id)}
-                                        alt={friend.name}
-                                        width={50}
-                                        height={50}
-                                        className='object-cover w-12 h-12'
-                                    />
-                                    {onlineUsers.includes(friend.id) && (
-                                        <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light" />
-                                    )}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-text-primary-dark dark:text-text-primary-light">{friend.name}</p>
+                    friends.map((friend) => {
+                        const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(friend.id, 'w-[3rem] h-[3rem]')
+
+                        return (
+                            <div
+                                key={friend.id}
+                                className="relative w-16 h-full flex flex-col justify-center items-center bg-inner-surface-light dark:bg-inner-surface-dark rounded-md
+                                            shadow-card-light dark:shadow-card-dark "
+                            >
+                                {/* Avatar */}
+                                <div
+                                    className={`${sizeClass} bg-cover bg-top bg-no-repeat w-[4rem] h-[4rem] md:w-[3rem] md:h-[3rem] rounded-md`}
+                                    style={{
+                                        backgroundImage: `url(${friend.image || avatarUrl})`,
+                                        backgroundColor,
+                                    }}
+                                />
+
+                                {/* Online indicator */}
+                                {onlineUsers.includes(friend.id) && (
+                                    <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light" />
+                                )}
+
+                                {/* Friend name */}
+                                <div className="text-xs text-center mt-1 text-text-primary-dark dark:text-text-primary-light">
+                                    {friend.name}
                                 </div>
                             </div>
-
-                            <div className="hidden md:flex space-x-2">
-                                {/* Message Button */}
-                                <button
-                                    onClick={() => onUserSelect(friend)}
-                                    onMouseEnter={() => setHoveredFriendId(friend.id)}
-                                    onMouseLeave={() => setHoveredFriendId(null)}
-                                    className="w-10 h-10 text-xs flex items-center justify-center rounded-full transform transition duration-150 ease-in-out hover:scale-125"
+                        )
+                    })
+                )
+            ) : (
+                <div className='h-full flex flex-col gap-6 p-8 overflow-y-auto bg-light dark:bg-dark-accent rounded-xl border-none'>
+                    <div className='hidden md:block'>
+                        <h2 className="text-lg font-semibold text-text-primary-dark dark:text-text-primary-light">Friends</h2>
+                    </div>
+                    <div className='flex flex-col gap-5'>
+                        {friends.length === 0 ? (
+                            <div className="text-center text-gray-500 dark:text-gray-400">
+                                No friends yet
+                            </div>
+                        ) : (
+                            friends.map((friend) => (
+                                <div
+                                    key={friend.id}
+                                    className="relative flex rounded-full items-center justify-between"
                                 >
-                                    {hoveredFriendId === friend.id ? (
-                                        <Lottie animationData={theme === 'light' ? messageLight : messageDark} loop={true} className="w-8 h-8" />
-                                    ) : (
-                                        <Image
-                                            src={theme === 'light' ? '/images/chat-light.svg' : '/images/chat-dark.svg'}
-                                            alt="Message"
-                                            width={24.9}
-                                            height={24.9}
-                                            className='pt-1'
-                                        />
-                                    )}
-                                </button>
-
-                                {/* Unfriend Button */}
-                                {unfriendingId === friend.id ? (
-                                    <div className="w-10 h-10 flex items-center justify-center">
-                                        <Lottie animationData={circle} loop={true} className="w-6 h-6" />
-                                    </div>
-                                ) : unfriendConfirmingId === friend.id ? (
-                                    <div>
-                                        <div className="absolute inset-0 z-10 flex items-center space-x-2 justify-between bg-light dark:bg-dark-accent rounded-md">
-                                            <div>
-                                                <span className='text-sm text-text-primary-dark dark:text-text-primary-light'>Unfriend {friend.name}?</span>
-                                            </div>
-                                            <div className='flex gap-3'>
-                                                <button
-                                                    onClick={() => confirmUnfriend(friend.id)}
-                                                    className="w-10 h-6 text-xs rounded-full bg-orange text-text-primary-light hover:bg-red-600 transition ease-out duration-300"
-                                                >
-                                                    Yes
-                                                </button>
-                                                <button
-                                                    onClick={() => setUnfriendConfirmingId(null)}
-                                                    className="w-10 h-6 text-xs rounded-full bg-gray-300 dark:bg-gray-600 text-text-primary-dark dark:text-light hover:bg-gray-400 dark:hover:bg-gray-700 transition-colors duration-200"
-                                                >
-                                                    No
-                                                </button>
-                                            </div>
+                                    <div className="relative flex items-center space-x-3">
+                                        <div className="rounded-full overflow-hidden">
+                                            <div
+                                                // src={friend.image || getConsistentAvatar(friend.id)}
+                                                // alt={friend.name}
+                                                // width={50}
+                                                // height={50}
+                                                style={{ backgroundImage: `url(${friend.image || getConsistentAvatar(friend.id)})` }}
+                                                className='object-cover w-12 h-12'
+                                            />
+                                            {onlineUsers.includes(friend.id) && (
+                                                <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-text-primary-dark dark:text-text-primary-light">{friend.name}</p>
                                         </div>
                                     </div>
-                                ) : (
-                                    <button
-                                        onClick={() => handleUnfriend(friend.id)}
-                                        onMouseEnter={() => setHoveredUnfriendId(friend.id)}
-                                        onMouseLeave={() => setHoveredUnfriendId(null)}
-                                        className="w-10 h-10 text-xs flex items-center justify-center rounded-full transform transition duration-150 ease-in-out hover:scale-125"
-                                    >
-                                        {hoveredUnfriendId === friend.id ? (
-                                            <Lottie animationData={theme === 'light' ? deleteLight : deleteDark} loop={true} className="w-8 h-8" />
+
+                                    <div className="flex space-x-2">
+                                        {/* Message Button */}
+                                        <button
+                                            onClick={() => onUserSelect(friend)}
+                                            onMouseEnter={() => setHoveredFriendId(friend.id)}
+                                            onMouseLeave={() => setHoveredFriendId(null)}
+                                            className="w-10 h-10 text-xs flex items-center justify-center rounded-full transform transition duration-150 ease-in-out hover:scale-125"
+                                        >
+                                            {hoveredFriendId === friend.id ? (
+                                                <Lottie animationData={theme === 'light' ? messageLight : messageDark} loop={true} className="w-8 h-8" />
+                                            ) : (
+                                                <Image
+                                                    src={theme === 'light' ? '/images/chat-light.svg' : '/images/chat-dark.svg'}
+                                                    alt="Message"
+                                                    width={24.9}
+                                                    height={24.9}
+                                                    className='pt-1'
+                                                />
+                                            )}
+                                        </button>
+
+                                        {/* Unfriend Button */}
+                                        {unfriendingId === friend.id ? (
+                                            <div className="w-10 h-10 flex items-center justify-center">
+                                                <Lottie animationData={circle} loop={true} className="w-6 h-6" />
+                                            </div>
+                                        ) : unfriendConfirmingId === friend.id ? (
+                                            <div>
+                                                <div className="absolute inset-0 z-10 flex items-center space-x-2 justify-between bg-light dark:bg-dark-accent rounded-md">
+                                                    <div>
+                                                        <span className='text-sm text-text-primary-dark dark:text-text-primary-light'>Unfriend {friend.name}?</span>
+                                                    </div>
+                                                    <div className='flex gap-3'>
+                                                        <button
+                                                            onClick={() => confirmUnfriend(friend.id)}
+                                                            className="w-10 h-6 text-xs rounded-full bg-orange text-text-primary-light hover:bg-red-600 transition ease-out duration-300"
+                                                        >
+                                                            Yes
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setUnfriendConfirmingId(null)}
+                                                            className="w-10 h-6 text-xs rounded-full bg-gray-300 dark:bg-gray-600 text-text-primary-dark dark:text-light hover:bg-gray-400 dark:hover:bg-gray-700 transition-colors duration-200"
+                                                        >
+                                                            No
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         ) : (
-                                            <Image
-                                                src={theme === 'light' ? '/images/unlink-light.svg' : '/images/unlink-dark.svg'}
-                                                alt="Unfriend"
-                                                width={20.9}
-                                                height={20.9}
-                                            />
+                                            <button
+                                                onClick={() => handleUnfriend(friend.id)}
+                                                onMouseEnter={() => setHoveredUnfriendId(friend.id)}
+                                                onMouseLeave={() => setHoveredUnfriendId(null)}
+                                                className="w-10 h-10 text-xs flex items-center justify-center rounded-full transform transition duration-150 ease-in-out hover:scale-125"
+                                            >
+                                                {hoveredUnfriendId === friend.id ? (
+                                                    <Lottie animationData={theme === 'light' ? deleteLight : deleteDark} loop={true} className="w-8 h-8" />
+                                                ) : (
+                                                    <Image
+                                                        src={theme === 'light' ? '/images/unlink-light.svg' : '/images/unlink-dark.svg'}
+                                                        alt="Unfriend"
+                                                        width={20.9}
+                                                        height={20.9}
+                                                    />
+                                                )}
+                                            </button>
                                         )}
-                                    </button>
-                                )}
-                                {/* <div className=''>
-                                    <span className='absolute inset-0 bg-light'>Unfriend?</span>
-                                </div> */}
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+
+
+
         </div>
     )
 }
