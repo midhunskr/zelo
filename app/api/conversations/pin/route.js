@@ -80,13 +80,11 @@ export async function DELETE(request) {
         }
 
         // Remove the pinned conversation
-        await prisma.pinnedConversation.delete({
+        await prisma.pinnedConversation.deleteMany({
             where: {
-                userId_conversationId: {
-                    userId: session.user.id,
-                    conversationId: conversationId
-                }
-            }
+                userId: session.user.id,
+                conversationId: conversationId,
+            },
         })
 
         return NextResponse.json({ success: true })
@@ -97,4 +95,60 @@ export async function DELETE(request) {
             { status: 500 }
         )
     }
-} 
+}
+
+export async function GET() {
+    try {
+        const session = await getServerSession(authOptions)
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        console.log("Fetching pinned for user:", session.user.id);
+        
+        const pinned = await prisma.pinnedConversation.findMany({
+            where: {
+                userId: session.user.id,
+                isPinned: true,
+            },
+            include: {
+                conversation: true, // friend (User)
+            },
+            orderBy: {
+                updatedAt: 'desc',
+            },
+        })
+
+        // For each pinned conversation, fetch the latest message
+        const results = await Promise.all(
+            pinned.map(async (p) => {
+                const lastMessage = await prisma.message.findFirst({
+                    where: {
+                        OR: [
+                            { senderId: session.user.id, receiverId: p.conversationId },
+                            { senderId: p.conversationId, receiverId: session.user.id },
+                        ],
+                    },
+                    orderBy: { createdAt: 'desc' },
+                })
+
+                return {
+                    id: p.conversationId,
+                    name: p.conversation.name,
+                    email: p.conversation.email,
+                    image: p.conversation.image,
+                    lastMessage: lastMessage?.content ?? null,
+                    isPinned: p.isPinned,
+                }
+            })
+        )
+
+        return NextResponse.json(results)
+    } catch (error) {
+        console.error('Error fetching pinned conversations:', error)
+        return NextResponse.json(
+            { error: 'Failed to fetch pinned conversations' },
+            { status: 500 }
+        )
+    }
+}

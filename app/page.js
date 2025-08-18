@@ -1,13 +1,20 @@
 'use client'
 
+
 import { useSession } from 'next-auth/react'
-import { useRouter, redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import ChatInterface from './components/ChatInterface'
 
 export default function Home() {
     const { data: session, status } = useSession()
     const router = useRouter()
+
+    useEffect(() => {
+        if (window.innerWidth <= 768) {
+            router.replace('/mobile');
+        }
+    }, [router]);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -39,4 +46,4 @@ export default function Home() {
             <ChatInterface />
         </main>
     )
-} 
+}

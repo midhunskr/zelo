@@ -81,11 +81,12 @@ export const theme = {
         },
     },
     screens: {
-        sm: '640px',
+        xs: '390px',
+        sm: '430px',
         md: '768px',
         lg: '1024px',
         xl: '1280px',
-        '2xl': '1536px',
+        '2xl': '1440px',
         'max-md': { 'max': '767px' }, // Target screens smaller than 768px
         'between-md-lg': { 'min': '768px', 'max': '1023px' },
     }

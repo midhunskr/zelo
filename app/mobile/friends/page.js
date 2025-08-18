@@ -1,21 +1,11 @@
 'use client'
 
+import { getConsistentAvatar } from "@/app/components/chat/DefaultAvatars";
+import { useMobileChat } from "@/app/context/MobileChatContext";
+import useFriendsList from "@/app/hooks/useFriendsList";
+import Image from "next/image";
 
-import dynamic from 'next/dynamic'
-import Image from 'next/image'
-import { getConsistentAvatar } from './DefaultAvatars'
-const Lottie = dynamic(() => import('lottie-react').then(mod => mod.default), { ssr: false })
-import circle from '@/app/animations/circle-loader.json'
-import messageLight from '@/app/animations/message-light.json'
-import messageDark from '@/app/animations/message-dark.json'
-import deleteLight from '@/app/animations/delete-light.json'
-import deleteDark from '@/app/animations/delete-dark.json'
-import useIsMobile from '@/app/hooks/useIsMobile'
-import { useMobileChat } from '@/app/context/MobileChatContext'
-import useFriendsList from '@/app/hooks/useFriendsList'
-
-
-export default function FriendsList() {
+export default function MobileFriends() {
     const {
         friends,
         loading,
@@ -26,97 +16,48 @@ export default function FriendsList() {
         unfriendConfirmingId,
         setUnfriendConfirmingId,
         unfriendingId,
-        setUnfriendingId,
-        fetchFriends,
         handleUnfriend,
         confirmUnfriend,
-        session,
     } = useFriendsList();
-    const isMobile = useIsMobile();
-    const { handleUserSelect, onlineUsers, theme } = useMobileChat();
 
-    if (!session) {
-        return (
-            <div className="p-4">
-                <p className="text-gray-500 dark:text-gray-400">Please sign in to view friends</p>
-            </div>
-        )
-    }
-
-    if (loading) {
-        return (
-            <div className="p-4"></div>
-        )
-    }
-
+    const {
+        handleUserSelect,
+        onlineUsers,
+        theme
+    } = useMobileChat();
     return (
-        <div className='md:flex flex-col md:w-72 h-[6rem] md:h-full p-[.4rem] md:p-0 bg-card-light-outer dark:bg-card-dark-outer md:bg-light md:dark:bg-dark-accent
-                        rounded-lg md:rounded-xl md:border-none border border-card-stroke-light dark:border-card-stroke-dark'>
-            <div className="hidden">
-                <Lottie animationData={messageLight} />
-                <Lottie animationData={messageDark} />
-                <Lottie animationData={deleteLight} />
-                <Lottie animationData={deleteDark} />
-            </div>
-            {isMobile ? (
-                friends.length === 0 ? (
-                    <div className='text-center text-text-secondary-light py-5'>No friends yet</div>
-                ) : (
-                    friends.map((friend) => {
-                        const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(friend.id, 'w-[3rem] h-[3rem]')
-
-                        return (
-                            <div
-                                key={friend.id}
-                                className="relative w-16 h-full flex flex-col justify-center items-center bg-inner-surface-light dark:bg-inner-surface-dark rounded-md
-                                            shadow-card-light dark:shadow-card-dark "
-                            >
-                                {/* Avatar */}
-                                <div
-                                    className={`${sizeClass} bg-cover bg-top bg-no-repeat w-[4rem] h-[4rem] md:w-[3rem] md:h-[3rem] rounded-md`}
-                                    style={{
-                                        backgroundImage: `url(${friend.image || avatarUrl})`,
-                                        backgroundColor,
-                                    }}
-                                />
-
-                                {/* Online indicator */}
-                                {onlineUsers.includes(friend.id) && (
-                                    <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light" />
-                                )}
-
-                                {/* Friend name */}
-                                <div className="text-xs text-center mt-1 text-text-primary-dark dark:text-text-primary-light">
-                                    {friend.name}
-                                </div>
-                            </div>
-                        )
-                    })
-                )
-            ) : (
-                <div className='h-full flex flex-col gap-6 p-8 overflow-y-auto bg-light dark:bg-dark-accent rounded-xl border-none'>
-                    <div className=''>
-                        <h2 className="text-lg font-semibold text-text-primary-dark dark:text-text-primary-light">Friends</h2>
-                    </div>
-                    <div className='flex flex-col gap-5'>
-                        {friends.length === 0 ? (
-                            <div className="text-center text-gray-500 dark:text-gray-400">
-                                No friends yet
-                            </div>
-                        ) : (
-                            friends.map((friend) => (
+        <div className="h-full">
+            <div className='h-full flex flex-col gap-6 p-5 md:p-8 overflow-y-auto bg-inner-surface-light dark:bg-inner-surface-dark
+            shadow-card-light dark:shadow-card-dark rounded-lg border border-card-stroke-light dark:border-card-stroke-dark'>
+                <div className=''>
+                    <h2 className="text-lg font-semibold text-text-primary-dark dark:text-text-primary-light">Your Friends</h2>
+                </div>
+                <div className='flex flex-col gap-5'>
+                    {friends.length === 0 ? (
+                        <div className="text-center text-gray-500 dark:text-gray-400">
+                            No friends yet
+                        </div>
+                    ) : (
+                        friends.map((friend) => {
+                            const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(friend.id)
+                            return (
                                 <div
                                     key={friend.id}
                                     className="relative flex rounded-full items-center justify-between"
                                 >
                                     <div className="relative flex items-center space-x-3">
-                                        <div className="rounded-full overflow-hidden">
+                                        <div className="relative">
                                             <div
-                                                style={{ backgroundImage: `url(${friend.image || getConsistentAvatar(friend.id)})` }}
-                                                className='object-cover w-12 h-12'
+                                                src={friend.image || getConsistentAvatar(friend.id)}
+                                                className={`${sizeClass} bg-contain bg-top bg-no-repeat w-[4rem] h-[4rem] md:w-[3rem] md:h-[3rem] rounded-full mr-3`}
+                                                alt={friend.name}
+                                                style={{
+                                                    backgroundImage: `url(${friend.image || avatarUrl})`,
+                                                    backgroundColor,
+                                                }}
                                             />
                                             {onlineUsers.includes(friend.id) && (
-                                                <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light" />
+                                                <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light"></span>
                                             )}
                                         </div>
                                         <div>
@@ -193,11 +134,12 @@ export default function FriendsList() {
                                         )}
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
+                            )
+
+                        })
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     )
 }

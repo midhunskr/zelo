@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { getConsistentAvatar } from './DefaultAvatars'
-import Image from 'next/image'
 import dynamic from 'next/dynamic'
 const Lottie = dynamic(() => import('lottie-react').then(mod => mod.default), { ssr: false })
 import typingBlue from '@/app/animations/typing-blue.json'
@@ -51,18 +50,18 @@ export default function ChatScreen({
         }, TYPING_TIMEOUT)
     }
 
-    if (!conversation) {
-        return (
-            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-                <div className="text-center">
-                    <h3 className="text-xl font-medium text-gray-900 dark:text-white">Welcome to Zelo</h3>
-                    <p className="mt-2 text-gray-500 dark:text-gray-400">
-                        Select a conversation to start chatting
-                    </p>
-                </div>
-            </div>
-        )
-    }
+    // if (!conversation) {
+    //     return (
+    //         <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    //             <div className="text-center">
+    //                 <h3 className="text-xl font-medium text-gray-900 dark:text-white">Welcome to Zelo</h3>
+    //                 <p className="mt-2 text-text-secondary-light">
+    //                     Select a conversation to start chatting
+    //                 </p>
+    //             </div>
+    //         </div>
+    //     )
+    // }
 
     // Status rendering logic
     const renderStatus = () => {
@@ -86,7 +85,7 @@ export default function ChatScreen({
             <div className="flex items-center px-4 py-3">
                 <div className="flex items-center flex-1 min-w-0">
                     <div className="relative">
-                        <Image
+                        <img
                             src={conversation.image || getConsistentAvatar(conversation.id)}
                             alt={conversation.name}
                             className="w-14 h-14 rounded-full object-cover"

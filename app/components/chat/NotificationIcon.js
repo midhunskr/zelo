@@ -1,109 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useState } from 'react'
 import { getConsistentAvatar } from './DefaultAvatars'
+import { useNotifications } from '@/app/hooks/useNotifications'
 
-export default function NotificationIcon(getAvatar) {
-    const { data: session, status } = useSession()
-    const [notifications, setNotifications] = useState([])
+export default function NotificationIcon() {
+    const { notifications, error, handleAccept, handleReject } = useNotifications()
     const [isOpen, setIsOpen] = useState(false)
-    const [error, setError] = useState(null)
-
-    useEffect(() => {
-        if (status === 'authenticated' && session?.user?.id) {
-            fetchNotifications()
-        } else {
-            if (status === "loading") {
-                return null // or a spinner
-            }
-        }
-    }, [session, status])
-
-    const fetchNotifications = async () => {
-        try {
-            const response = await fetch('/api/friends/pending')
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Failed to fetch notifications')
-            }
-            const data = await response.json()
-            console.log('Fetched notifications:', data)
-            setNotifications(data.receivedInvitations || [])
-            setError(null)
-        } catch (error) {
-            console.error('Error fetching notifications:', error)
-            setError(error.message)
-        }
-    }
-
-    const handleAccept = async (id) => {
-        try {
-            setError(null)
-            console.log('Session status:', status)
-
-            if (status !== 'authenticated' || !session?.user?.id) {
-                console.error('No valid session found')
-                throw new Error('User not authenticated')
-            }
-
-            console.log('Accepting friend request:', {
-                id,
-                currentUserId: session.user.id,
-                session: session
-            })
-
-            const response = await fetch(`/api/friends/accept/${id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.accessToken}`
-                },
-                credentials: 'include'
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                console.error('Error response:', errorData)
-                throw new Error(errorData.error || 'Failed to accept friend request')
-            }
-
-            const result = await response.json()
-            console.log('Friend request accepted:', result)
-
-            // Refresh notifications after accepting
-            await fetchNotifications()
-        } catch (error) {
-            console.error('Error accepting friend request:', error)
-            setError(error.message)
-        }
-    }
-
-    const handleReject = async (id) => {
-        try {
-            setError(null)
-            const response = await fetch(`/api/friends/reject`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ requestId: id }) // ✅ Include the ID here
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                console.error('Error data:', errorData)
-                throw new Error(errorData.error || 'Failed to reject friend request')
-            }
-
-            await fetchNotifications()
-        } catch (error) {
-            console.error('Error rejecting friend request:', error)
-            setError(error.message)
-        }
-    }
-
 
     return (
         <div className="relative">
@@ -132,7 +35,7 @@ export default function NotificationIcon(getAvatar) {
             </button>
 
             {isOpen && (
-                <div className="absolute mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-10 border border-gray-200 dark:border-gray-700">
+                <div className="absolute mt-6 -right-12 w-80 bg-light dark:bg-dark-accent rounded-lg shadow-xl border border-text-secondary-dark border-opacity-30 z-10">
                     <div className="p-4">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Friend Requests</h3>
@@ -154,44 +57,51 @@ export default function NotificationIcon(getAvatar) {
                             <p className="text-gray-500 dark:text-gray-400 text-center py-4">No pending friend requests</p>
                         ) : (
                             <div className="space-y-3 max-h-96 overflow-y-auto">
-                                {notifications.map((notification) => (
-                                    <div
-                                        key={notification.id}
-                                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                                    >
-                                        <div className="flex items-center space-x-3">
-                                            <div className="flex-shrink-0">
-                                                <img
-                                                    src={notification.sender.image || getConsistentAvatar(notification.sender.id)}
-                                                    alt={notification.sender.name}
-                                                    className="w-8 h-8 rounded-full mr-3"
-                                                />
+                                {notifications.map((notification) => {
+                                    const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(notification.sender.id)
+                                    return (
+                                        <div
+                                            key={notification.id}
+                                            className="flex items-center justify-between p-3  rounded-md"
+                                        >
+                                            <div className="flex items-center">
+                                                <div className="flex-shrink-0">
+                                                    <div
+                                                        src={notification.sender.image || getConsistentAvatar(notification.sender.id)}
+                                                        className={`${sizeClass} bg-contain bg-top bg-no-repeat w-[4rem] h-[4rem] md:w-[3rem] md:h-[3rem] rounded-full mr-3`}
+                                                        alt={notification.sender.name}
+                                                        style={{
+                                                            backgroundImage: `url(${notification.sender.image || avatarUrl})`,
+                                                            backgroundColor,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {notification.sender.name}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {notification.sender.email}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {notification.sender.name}
-                                                </p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {notification.sender.email}
-                                                </p>
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    onClick={() => handleAccept(notification.id)}
+                                                    className="p-1 text-xs font-medium bg-green rounded-full hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                                >
+                                                    <img src="./images/accept.svg" alt="accept" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(notification.id)}
+                                                    className="p-1 text-xs font-medium bg-red-600 rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                >
+                                                    <img src="./images/reject.svg" alt="reject" />
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="flex space-x-2">
-                                            <button
-                                                onClick={() => handleAccept(notification.id)}
-                                                className="px-3 py-1 text-xs font-medium text-white bg-green rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                            >
-                                                Accept
-                                            </button>
-                                            <button
-                                                onClick={() => handleReject(notification.id)}
-                                                className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                            >
-                                                Reject
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         )}
                     </div>
