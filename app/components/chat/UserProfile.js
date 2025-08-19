@@ -8,7 +8,6 @@ import { getConsistentAvatar } from './DefaultAvatars'
 export default function UserProfile({ user, getAvatar }) {
     const { data: session } = useSession()
     const currentUser = user || session?.user
-    console.log(session)
     const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(currentUser.id, 'w-[4rem] h-[4rem] md:w-[3rem]')
     const [modalOpen, setModalOpen] = useState(false)
 

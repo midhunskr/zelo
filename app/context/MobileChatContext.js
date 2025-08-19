@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { io } from "socket.io-client";
+import { useCallback } from "react";
 
 const MobileChatContext = createContext();
 
@@ -143,6 +144,13 @@ export function MobileChatProvider({ children }) {
         }
     }, [session?.user?.id]);
 
+    // Fetch pinned conversations once when session is available
+    useEffect(() => {
+        if (session?.user?.id) {
+            fetchPinnedConversations();
+        }
+    }, [session?.user?.id]);
+
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') || 'light';
         setTheme(savedTheme);
@@ -165,6 +173,19 @@ export function MobileChatProvider({ children }) {
         } catch (err) { }
     };
 
+    // ✅ Fetch all conversations
+    // const fetchConversations = useCallback(async () => {
+    //     try {
+    //         const response = await fetch('/api/friends/list')
+    //         if (!response.ok) throw new Error('Failed to fetch conversations')
+    //         const data = await response.json()
+    //         setConversations(data)
+    //     } catch (err) {
+    //         console.error('Error fetching conversations:', err)
+    //     }
+    // }, [])
+
+    // ✅ Fetch all Pinned conversations
     const fetchPinnedConversations = async () => {
         try {
             const response = await fetch('/api/conversations/pin')
@@ -185,6 +206,28 @@ export function MobileChatProvider({ children }) {
             console.error('Error fetching pinned conversations:', err)
         }
     }
+
+    // Refresh conversations
+    const refreshConversations = useCallback(async () => {
+        try {
+            const res = await fetch('/api/friends/list')
+            if (!res.ok) throw new Error('Failed to fetch conversations')
+            const data = await res.json()
+
+            setConversations(
+                (Array.isArray(data) ? data : []).map((c) => ({
+                    id: c.id,
+                    name: c.name ?? '',
+                    email: c.email ?? '',
+                    image: c.image ?? '',
+                    lastMessage: c.lastMessage ?? '',
+                    isPinned: c.isPinned ?? false,
+                }))
+            )
+        } catch (err) {
+            console.error('Error fetching conversations:', err)
+        }
+    }, [])
 
     const handleUserSelect = async (user) => {
         setSelectedUser(user);
@@ -255,6 +298,7 @@ export function MobileChatProvider({ children }) {
                 session,
                 selectedUser,
                 conversations,
+                pinnedConversations,
                 messages,
                 onlineUsers,
                 typingStatus,
@@ -264,9 +308,10 @@ export function MobileChatProvider({ children }) {
                 handleTyping,
                 handleDeleteConversation,
                 fetchFriends,
-                refreshConversations: fetchFriends,
+                refreshConversations,
                 fetchPinnedConversations,
                 setConversations,
+                setPinnedConversations,
                 toggleTheme,
             }}
         >

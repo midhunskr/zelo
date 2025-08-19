@@ -10,10 +10,10 @@ export default function PinnedMessages(props) {
     const conversations = props.conversations ?? context.pinnedConversations ?? []
     const onUserSelect = props.onUserSelect ?? context.handleUserSelect
     const refreshConversations = props.refreshConversations ?? context.fetchPinnedConversations
-
+    
     if (conversations.length === 0) {
         return (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-5 hidden">
+            <div className="text-center text-gray-500 dark:text-gray-400 py-5">
                 No pinned conversations
             </div>
         )
@@ -26,10 +26,7 @@ export default function PinnedMessages(props) {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId }),
-            })
-
-            const result = await response.json().catch(() => null)
-            console.log('Unpin API result', response.status, result)
+            })            
 
             if (!response.ok) throw new Error('Failed to unpin conversation')
 

@@ -16,7 +16,6 @@ export default function Conversations() {
     const handlePin = async (conversationId) => {
         try {
             const isCurrentlyPinned = conversations.find(c => c.id === conversationId)?.isPinned;
-            console.log('Pin/Unpin:', conversationId, isCurrentlyPinned);
             const response = await fetch('/api/conversations/pin', {
                 method: isCurrentlyPinned ? 'DELETE' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -34,7 +33,7 @@ export default function Conversations() {
             console.error('Error pinning conversation:', error);
         }
         setSettingsOpen(null);
-    }
+    } 
 
     return (
         <div className='h-full'>
