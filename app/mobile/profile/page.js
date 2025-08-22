@@ -15,9 +15,9 @@ export default async function ProfilePage() {
     }
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Your Profile</h1>
-            <UserProfile user={session.user} /> {/* Pass the user from session */}
+        <div className='px-6 h-full rounded-lg bg-inner-surface-light dark:bg-inner-surface-dark shadow-card-light
+        dark:shadow-card-dark md:hidden border border-card-stroke-light dark:border-card-stroke-dark'>
+            <UserProfile user={session.user} />
         </div>
     )
 }

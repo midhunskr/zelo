@@ -32,13 +32,8 @@ export default function Home() {
     }
 
     // Prevent any content from being rendered if not authenticated
-    if (!session || status === 'unauthenticated') {
-        router.replace('/signin')
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            </div>
-        )
+    if (!session) {
+        return null // nothing until redirect happens
     }
 
     return (

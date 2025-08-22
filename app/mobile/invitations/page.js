@@ -7,10 +7,12 @@ export default function MobileNotification() {
     const { notifications, error, handleAccept, handleReject } = useNotifications()
 
     return (
-        <div className="flex flex-col md:items-center rounded-lg items-center">
+        <div className="flex flex-col md:items-center rounded-lg items-center h-full
+        bg-inner-surface-light dark:bg-inner-surface-dark shadow-card-light dark:shadow-card-dark md:hidden
+        border border-card-stroke-light dark:border-card-stroke-dark">
             {error && <p className="text-red-500">{error}</p>}
             {notifications.length === 0 ? (
-                <p className="text-text-secondary-light">No pending friend requests</p>
+                <p className="text-text-secondary-light pt-4">No pending friend requests</p>
             ) : (
                 notifications.map((n) => {
                     const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(n.sender.id)

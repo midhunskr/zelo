@@ -20,12 +20,13 @@ export async function PATCH(request) {
         if (image) updateData.image = image
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10)
-            updateData.password = hashedPassword
+            updateData.hashedPassword = hashedPassword
         }
 
         const updatedUser = await prisma.user.update({
             where: { id: session.user.id },
-            data: updateData
+            data: updateData,
+            select: { id: true, email: true, name: true, image: true } // no hashedPassword
         })
 
         return NextResponse.json(updatedUser)

@@ -50,7 +50,7 @@ export default function FriendsList() {
     }
 
     return (
-        <div className='md:flex flex-col md:w-72 h-[6rem] md:h-full p-[.4rem] md:p-0 bg-card-light-outer dark:bg-card-dark-outer md:bg-light md:dark:bg-dark-accent
+        <div className='flex md:flex-col gap-2 md:gap-0 md:w-72 h-[6rem] md:h-full p-[.4rem] md:p-0 bg-card-light-outer dark:bg-card-dark-outer md:bg-light md:dark:bg-dark-accent
                         rounded-lg md:rounded-xl md:border-none border border-card-stroke-light dark:border-card-stroke-dark'>
             <div className="hidden">
                 <Lottie animationData={messageLight} />
@@ -77,17 +77,19 @@ export default function FriendsList() {
                                     style={{
                                         backgroundImage: `url(${friend.image || avatarUrl})`,
                                         backgroundColor,
+                                        backgroundPosition: 'center -40%',
+                                        backgroundSize: '66%',
                                     }}
                                 />
 
                                 {/* Online indicator */}
                                 {onlineUsers.includes(friend.id) && (
-                                    <span className="absolute top-[0.3rem] w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light" />
+                                    <span className="absolute top-0 left-0  w-[.7rem] h-[.7rem] bg-green rounded-full border-2 border-light" />
                                 )}
 
                                 {/* Friend name */}
-                                <div className="text-xs text-center mt-1 text-text-primary-dark dark:text-text-primary-light">
-                                    {friend.name}
+                                <div className="text-xs text-center py-1 text-text-primary-dark dark:text-text-primary-light">
+                                    {friend.name?.split(' ')[0]}
                                 </div>
                             </div>
                         )

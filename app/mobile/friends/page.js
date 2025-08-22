@@ -8,10 +8,7 @@ import Image from "next/image";
 export default function MobileFriends() {
     const {
         friends,
-        loading,
-        hoveredFriendId,
         setHoveredFriendId,
-        hoveredUnfriendId,
         setHoveredUnfriendId,
         unfriendConfirmingId,
         setUnfriendConfirmingId,
@@ -23,7 +20,7 @@ export default function MobileFriends() {
     const {
         handleUserSelect,
         onlineUsers,
-        theme
+        toggleTheme
     } = useMobileChat();
     return (
         <div className="h-full">
@@ -45,7 +42,7 @@ export default function MobileFriends() {
                                     key={friend.id}
                                     className="relative flex rounded-full items-center justify-between"
                                 >
-                                    <div className="relative flex items-center space-x-3">
+                                    <div className="relative flex items-center">
                                         <div className="relative">
                                             <div
                                                 src={friend.image || getConsistentAvatar(friend.id)}
@@ -54,6 +51,8 @@ export default function MobileFriends() {
                                                 style={{
                                                     backgroundImage: `url(${friend.image || avatarUrl})`,
                                                     backgroundColor,
+                                                    backgroundPosition: "center -140%",
+                                                backgroundSize: "70%",
                                                 }}
                                             />
                                             {onlineUsers.includes(friend.id) && (
@@ -71,25 +70,21 @@ export default function MobileFriends() {
                                             onClick={() => handleUserSelect(friend)}
                                             onMouseEnter={() => setHoveredFriendId(friend.id)}
                                             onMouseLeave={() => setHoveredFriendId(null)}
-                                            className="w-10 h-10 text-xs flex items-center justify-center rounded-full transform transition duration-150 ease-in-out hover:scale-125"
+                                            className="w-10 h-10 text-xs flex items-center justify-center rounded-full"
                                         >
-                                            {hoveredFriendId === friend.id ? (
-                                                <Lottie animationData={theme === 'light' ? messageLight : messageDark} loop={true} className="w-8 h-8" />
-                                            ) : (
-                                                <Image
-                                                    src={theme === 'light' ? '/images/chat-light.svg' : '/images/chat-dark.svg'}
-                                                    alt="Message"
-                                                    width={24.9}
-                                                    height={24.9}
-                                                    className='pt-1'
-                                                />
-                                            )}
+                                            <Image
+                                                src={'/icons/messaging.png'}
+                                                alt="Message"
+                                                width={34}
+                                                height={34}
+                                                className='pt-1'
+                                            />
                                         </button>
 
                                         {/* Unfriend Button */}
                                         {unfriendingId === friend.id ? (
                                             <div className="w-10 h-10 flex items-center justify-center">
-                                                <Lottie animationData={circle} loop={true} className="w-6 h-6" />
+                                                {/* <Lottie animationData={circle} loop={true} className="w-6 h-6" /> */}
                                             </div>
                                         ) : unfriendConfirmingId === friend.id ? (
                                             <div>
@@ -118,18 +113,14 @@ export default function MobileFriends() {
                                                 onClick={() => handleUnfriend(friend.id)}
                                                 onMouseEnter={() => setHoveredUnfriendId(friend.id)}
                                                 onMouseLeave={() => setHoveredUnfriendId(null)}
-                                                className="w-10 h-10 text-xs flex items-center justify-center rounded-full transform transition duration-150 ease-in-out hover:scale-125"
+                                                className="w-10 h-10 text-xs flex items-center justify-center rounded-full"
                                             >
-                                                {hoveredUnfriendId === friend.id ? (
-                                                    <Lottie animationData={theme === 'light' ? deleteLight : deleteDark} loop={true} className="w-8 h-8" />
-                                                ) : (
-                                                    <Image
-                                                        src={theme === 'light' ? '/images/unlink-light.svg' : '/images/unlink-dark.svg'}
-                                                        alt="Unfriend"
-                                                        width={20.9}
-                                                        height={20.9}
-                                                    />
-                                                )}
+                                                <Image
+                                                    src={'/icons/remove.png'}
+                                                    alt="Unfriend"
+                                                    width={28}
+                                                    height={28}
+                                                />
                                             </button>
                                         )}
                                     </div>

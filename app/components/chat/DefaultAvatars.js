@@ -16,12 +16,18 @@ export function getConsistentAvatar(userId, size = 'w-12 h-12') {
     '#37ACF4', // blue
   ]
 
-  const hash = String(userId)
-    .split('')
-    .reduce((sum, char) => sum + char.charCodeAt(0), 0)
 
-  const avatarIndex = hash % defaultAvatars.length
-  const colorIndex = hash % fallbackColors.length
+  // Use numeric userId for ordered color assignment, fallback to hash if not numeric
+  let numericId = parseInt(userId, 10)
+  if (isNaN(numericId)) {
+    // fallback: hash for non-numeric ids
+    numericId = String(userId)
+      .split('')
+      .reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  }
+
+  const avatarIndex = numericId % defaultAvatars.length
+  const colorIndex = numericId % fallbackColors.length
 
   return {
     avatarUrl: defaultAvatars[avatarIndex],

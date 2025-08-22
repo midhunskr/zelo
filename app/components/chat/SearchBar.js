@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import ThemeToggler from './ThemeToggler'
 import { getConsistentAvatar } from './DefaultAvatars'
 import { motion, AnimatePresence } from "framer-motion"
-import { createPortal } from 'react-dom'
 
 export default function SearchBar() {
     const [query, setQuery] = useState('')

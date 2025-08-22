@@ -32,9 +32,9 @@ export default function ChatDesktopView() {
     } = useMobileChat();
 
     return (
-        <div className="md:flex md:h-screen md:p-20 bg-light-accent dark:bg-dark">
+        <div className="flex h-screen px-20 py-10 xxxl:px-36 xxxl:py-24 bg-light-accent dark:bg-dark">
             <div className='w-80 flex flex-col gap-4'>
-                <div className="hidden md:flex gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
+                <div className="flex gap-2 items-center justify-between rounded-full p-2 bg-light dark:bg-dark-accent">
                     <SearchBar />
                     <div className="flex items-center">
                         <NotificationIcon getAvatar={getConsistentAvatar} />
@@ -50,7 +50,7 @@ export default function ChatDesktopView() {
                             getAvatar={getConsistentAvatar}
                         />
                     </div>
-                    <div className="flex-1 overflow-y-auto h-[70%]">
+                    <div className="flex-1">
                         <Conversations
                             conversations={conversations}
                             onUserSelect={handleUserSelect}

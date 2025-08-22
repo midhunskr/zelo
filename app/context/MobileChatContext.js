@@ -151,10 +151,19 @@ export function MobileChatProvider({ children }) {
         }
     }, [session?.user?.id]);
 
+
+    // Set initial theme and listen for theme changes
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        setTheme(savedTheme);
-        document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+        const updateTheme = () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(isDark ? 'dark' : 'light');
+        };
+        // Set initial
+        updateTheme();
+        // Listen for class changes
+        const observer = new MutationObserver(updateTheme);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
     }, []);
 
     const toggleTheme = () => {

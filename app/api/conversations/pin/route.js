@@ -105,7 +105,8 @@ export async function GET() {
         }
 
         console.log("Fetching pinned for user:", session.user.id);
-        
+
+        // Find all pinned conversations for the user
         const pinned = await prisma.pinnedConversation.findMany({
             where: {
                 userId: session.user.id,
@@ -119,9 +120,21 @@ export async function GET() {
             },
         })
 
-        // For each pinned conversation, fetch the latest message
-        const results = await Promise.all(
-            pinned.map(async (p) => {
+        // Filter out pinned conversations where the friendship is not accepted
+        const filtered = [];
+        for (const p of pinned) {
+            // Check if friendship is accepted
+            const friendship = await prisma.friendInvitation.findFirst({
+                where: {
+                    status: 'ACCEPTED',
+                    OR: [
+                        { senderId: session.user.id, receiverId: p.conversationId },
+                        { senderId: p.conversationId, receiverId: session.user.id },
+                    ],
+                },
+            });
+            if (friendship) {
+                // Only include if still friends
                 const lastMessage = await prisma.message.findFirst({
                     where: {
                         OR: [
@@ -130,20 +143,19 @@ export async function GET() {
                         ],
                     },
                     orderBy: { createdAt: 'desc' },
-                })
-
-                return {
+                });
+                filtered.push({
                     id: p.conversationId,
                     name: p.conversation.name,
                     email: p.conversation.email,
                     image: p.conversation.image,
                     lastMessage: lastMessage?.content ?? null,
                     isPinned: p.isPinned,
-                }
-            })
-        )
+                });
+            }
+        }
 
-        return NextResponse.json(results)
+        return NextResponse.json(filtered)
     } catch (error) {
         console.error('Error fetching pinned conversations:', error)
         return NextResponse.json(

@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import EditProfileModal from './EditProfileModal'
 import { getConsistentAvatar } from './DefaultAvatars'
 
-export default function UserProfile({ user, getAvatar }) {
+export default function UserProfile({ user }) {
     const { data: session } = useSession()
     const currentUser = user || session?.user
     const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(currentUser.id, 'w-[4rem] h-[4rem] md:w-[3rem]')
@@ -21,7 +21,7 @@ export default function UserProfile({ user, getAvatar }) {
 
     return (
         <>
-            <div className="flex items-center justify-between">
+            <div className="hidden md:flex items-center justify-between">
                 <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setModalOpen(true)}>
                     <div
                         className={`${sizeClass} bg-contain bg-top bg-no-repeat md:h-[3rem] rounded-full mr-3`}
@@ -44,8 +44,12 @@ export default function UserProfile({ user, getAvatar }) {
             </div>
 
             {modalOpen && (
-                <EditProfileModal user={currentUser} onClose={() => setModalOpen(false)} getAvatar={getConsistentAvatar} />
+                <EditProfileModal user={currentUser} onClose={() => setModalOpen(false)}  />
             )}
+
+            <div className='flex md:hidden w-full items-center justify-center'>
+                <EditProfileModal user={currentUser}  />
+            </div>
         </>
     )
 }

@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { toast } from 'react-hot-toast'
 import { getConsistentAvatar } from './DefaultAvatars'
 
-export default function EditProfileModal({ onClose, getAvatar }) {
+export default function EditProfileModal({ onClose }) {
     const { data: session, update } = useSession()
     const user = session?.user
-    const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(user.id, 'w-[4rem] h-[4rem] md:w-[3rem]')
+    const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(user?.id, 'w-[6rem] h-[6rem] md:w-[3rem]')
 
     const [formData, setFormData] = useState({
         name: user?.name || '',
@@ -46,9 +46,17 @@ export default function EditProfileModal({ onClose, getAvatar }) {
     }
 
 
+    // Keep form in sync when session user changes (e.g., after update())
     useEffect(() => {
-        console.log('Cloudinary Cloud Name:', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
-    }, []);
+        if (user) {
+            setFormData((prev) => ({
+                ...prev,
+                name: user.name || '',
+                email: user.email || '',
+                image: user.image || prev.image,
+            }))
+        }
+    }, [user?.name, user?.email, user?.image])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -66,7 +74,20 @@ export default function EditProfileModal({ onClose, getAvatar }) {
             if (!res.ok) throw new Error(updatedUser.error)
 
             toast.success('Profile updated!', { id: toastId })
-            await update()
+            // Optimistically reflect updated values in the form
+            setFormData((prev) => ({
+                ...prev,
+                name: updatedUser.name ?? prev.name,
+                email: updatedUser.email ?? prev.email,
+                image: updatedUser.image ?? prev.image,
+                password: '',
+            }))
+            // Ask next-auth to refresh the session with the new fields
+            await update({
+                name: updatedUser.name,
+                email: updatedUser.email,
+                image: updatedUser.image,
+            })
             onClose()
         } catch (error) {
             toast.error(error.message || 'Update failed', { id: toastId })
@@ -76,26 +97,32 @@ export default function EditProfileModal({ onClose, getAvatar }) {
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-light dark:bg-dark-accent p-6 rounded-xl w-full max-w-md shadow-lg">
-                <h2 className="text-lg font-semibold mb-4 text-text-primary-dark dark:text-text-primary-light">Edit Profile</h2>
+        <div className="md:fixed h-full w-full md:inset-0 md:bg-black md:bg-opacity-70 flex items-center justify-center md:z-50">
+            <div className="h-full md:bg-light md:dark:bg-dark-accent md:p-6 rounded-xl w-full max-w-md md:shadow-lg">
+                <h2 className="hidden md:block text-lg font-semibold md:mb-4 text-text-primary-dark dark:text-text-primary-light">Edit Profile</h2>
 
-                <form onSubmit={handleSubmit} className="flex">
-                    <div className="flex space-x-4">
+                <form onSubmit={handleSubmit} className="flex flex-col h-full md:flex-row">
+                    <div className="relative flex flex-col items-center pt-5 pb-2">
                         <div
                             style={{
-                            backgroundImage: `url(${formData.image || avatarUrl})`,
-                            backgroundColor,
-                        }}
+                                backgroundImage: `url(${formData.image || avatarUrl})`,
+                                backgroundColor,
+                                backgroundPosition: "center 120%",
+                                backgroundSize: "60%",
+                            }}
                             alt="Avatar"
-                            width={48}
-                            height={48}
-                            className={`${sizeClass} bg-contain bg-top bg-no-repeat md:h-[3rem] rounded-full mr-3`}
+                            className={`${sizeClass} bg-contain bg-top bg-no-repeat rounded-full`}
                         />
-                        <label className="text-sm font-medium text-text-primary-dark dark:text-text-primary-light cursor-pointer">
-                            Change Avatar
+                        <label className="absolute -bottom-2  bg-blue shadow-lg flex items-center rounded-full justify-center
+                            w-10 h-10 cursor-pointer border-4 border-light">
+                            <img src="/icons/edit.svg" alt="edit-icon" />
                             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                         </label>
+                    </div>
+
+                    <div className='flex flex-col items-center justify-center py-3'>
+                        <h1 className='text-[1.4rem] font-semibold'>{user?.name}</h1>
+                        <p className='text-text-secondary-light text-[1.1rem]'>{user?.email}</p>
                     </div>
 
                     <div className='flex flex-col space-y-4'>
@@ -103,45 +130,62 @@ export default function EditProfileModal({ onClose, getAvatar }) {
                             <input
                                 type="text"
                                 name="name"
-                                placeholder="Name"
-                                value={formData.name}
+                                placeholder={user?.name}
+                                // value={formData.name}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 rounded dark:bg-zinc-700 dark:bg-opacity-60 dark:text-light placeholder:text-text-primary-dark dark:placeholder:text-text-secondary-light"
+                                className="w-full px-6 py-3 rounded-full
+                                text-text-primary-dark dark:text-light
+                                placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-light
+                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden 
+                                border border-card-stroke-light dark:border-card-stroke-dark"
                             />
 
                             <input
                                 type="email"
                                 name="email"
-                                placeholder="Email"
-                                value={formData.email}
+                                placeholder={user?.email}
+                                // value={formData.email}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 rounded dark:bg-zinc-700 dark:bg-opacity-60 dark:text-light placeholder:text-text-primary-dark dark:placeholder:text-text-secondary-light"
+                                className="w-full px-6 py-3 rounded-full
+                                text-text-primary-dark dark:text-light placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-light
+                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden border border-card-stroke-light dark:border-card-stroke-dark"
                             />
 
                             <input
-                                type="password"
-                                name="password"
-                                placeholder="New password"
-                                value={formData.password}
+                                type="current-password"
+                                name="current-password"
+                                placeholder="******"
+                                // value={formData.password}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 rounded dark:bg-zinc-700 dark:bg-opacity-60 dark:text-light placeholder:text-text-primary-dark dark:placeholder:text-text-secondary-light"
+                                className="w-full px-6 py-3 rounded-full
+                                text-text-primary-dark dark:text-light placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-light
+                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden border border-card-stroke-light dark:border-card-stroke-dark"
                             />
                         </div>
 
-                        <div className="flex justify-end space-x-2">
+                        <div className="w-full flex flex-col justify-center space-y-2">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="w-20 h-8 text-text-primary-dark dark:text-text-primary-light text-sm bg-gray-300 dark:bg-gray-600 rounded hover:bg-gray-400"
+                                className="w-full py-3 rounded-full text-text-primary-dark dark:text-text-primary-light
+                                text-sm bg-light-accent dark:bg-text-tertiary-light hover:bg-gray-400 hidden md:block"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-20 h-8 text-sm bg-blue text-light rounded hover:bg-blue"
+                                className="w-full py-3 rounded-full text-sm bg-blue text-light hover:bg-blue"
                             >
                                 Save
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                onClick={() => signOut({ callbackUrl: '/signin' })}
+                                className="w-full py-3 rounded-full text-sm bg-text-tertiary-light bg-opacity-10 dark:bg-opacity-25 text-primary-dark hover:bg-blue"
+                            >
+                                Logout
                             </button>
                         </div>
                     </div>
