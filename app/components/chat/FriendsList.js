@@ -60,7 +60,7 @@ export default function FriendsList() {
             </div>
             {isMobile ? (
                 friends.length === 0 ? (
-                    <div className='text-center text-text-secondary-light py-5'>No friends yet</div>
+                    <div className='text-center text-text-secondary-light py-5 w-full'>No friends yet</div>
                 ) : (
                     friends.map((friend) => {
                         const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(friend.id, 'w-[3rem] h-[3rem]')

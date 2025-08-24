@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "cross-env NODE_ENV=production node server.js",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

@@ -42,15 +42,24 @@ export default function BottomTabBar() {
     return (
         <div className="p-[.4rem] bg-card-light-outer dark:bg-card-dark-outer rounded-full
                     border border-card-stroke-light dark:border-card-stroke-dark md:hidden">
-            <div className="relative flex items-center justify-around h-16 bg-inner-surface-light dark:bg-inner-surface-dark
+            <div className="relative flex items-center justify-between h-16 bg-inner-surface-light dark:bg-inner-surface-dark
                       rounded-full shadow-card-light dark:shadow-card-dark border border-card-stroke-light dark:border-card-stroke-dark md:border-none">
 
                 {/* Active Selector */}
                 {activeIndex !== -1 && (
                     <motion.div
-                        className="absolute top-0 left-[2.05rem] w-5 h-1 bg-blue rounded-full"
+                        className="absolute top-0 left-[2.05rem] w-5 h-1 bg-blue rounded-full xsm:hidden"
                         initial={false}
                         animate={{ x: activeIndex * 85.5 }} // 64 = width + gap, tweak if needed
+                        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                    />
+                )}
+
+                {activeIndex !== -1 && (
+                    <motion.div
+                        className="absolute top-0 left-[2.15rem] w-5 h-1 bg-blue rounded-full hidden xsm:block"
+                        initial={false}
+                        animate={{ x: activeIndex * 91.5 }} // 64 = width + gap, tweak if needed
                         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                     />
                 )}
@@ -59,9 +68,9 @@ export default function BottomTabBar() {
                     <button
                         key={item.name}
                         onClick={() => router.push(item.path)}
-                        className={`relative flex flex-col items-center justify-center p-2 text-xs font-medium transition-colors duration-200 ${pathname === item.path
-                                ? 'text-blue dark:text-blue-400'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                        className={`relative p-8 text-xs font-medium transition-colors duration-200 ${pathname === item.path
+                            ? 'text-blue dark:text-blue-400'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                             }`}
                     >
                         <Image

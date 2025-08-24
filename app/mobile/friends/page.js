@@ -26,12 +26,9 @@ export default function MobileFriends() {
         <div className="h-full">
             <div className='h-full flex flex-col gap-6 p-5 md:p-8 overflow-y-auto bg-inner-surface-light dark:bg-inner-surface-dark
             shadow-card-light dark:shadow-card-dark rounded-lg border border-card-stroke-light dark:border-card-stroke-dark'>
-                <div className=''>
-                    <h2 className="text-lg font-semibold text-text-primary-dark dark:text-text-primary-light">Your Friends</h2>
-                </div>
                 <div className='flex flex-col gap-5'>
                     {friends.length === 0 ? (
-                        <div className="text-center text-gray-500 dark:text-gray-400">
+                        <div className="text-center text-text-secondary-light">
                             No friends yet
                         </div>
                     ) : (

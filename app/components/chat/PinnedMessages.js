@@ -13,7 +13,7 @@ export default function PinnedMessages(props) {
 
     if (conversations.length === 0) {
         return (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-5">
+            <div className="text-center text-text-secondary-light py-5">
                 No pinned conversations
             </div>
         )
