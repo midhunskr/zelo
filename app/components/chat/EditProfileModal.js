@@ -111,7 +111,7 @@ export default function EditProfileModal({ onClose }) {
                                 backgroundSize: "60%",
                             }}
                             alt="Avatar"
-                            className={`${sizeClass} bg-contain bg-top bg-no-repeat rounded-full`}
+                            className={`${sizeClass} bg-contain bg-top bg-no-repeat rounded-full xsm:hidden`}
                         />
                         <label className="absolute -bottom-2  bg-blue shadow-lg flex items-center rounded-full justify-center
                             xs:w-10 xs:h-10 w-8 h-8 cursor-pointer border-4 border-light">
