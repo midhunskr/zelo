@@ -123,7 +123,7 @@ export default function SearchBar() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search users..."
-                    className="xs:w-[18.4rem] xsm:w-[19.8rem] md:w-full py-3 pl-12 text-sm text-text-secondary-light md:bg-light md:dark:bg-dark-accent md:border
+                    className="w-[17.5rem] xs:w-[18.4rem] xsm:w-[19.8rem] md:w-full py-3 pl-12 text-sm text-text-secondary-light md:bg-light md:dark:bg-dark-accent md:border
                     md:border-gray-300 rounded-full md:focus:outline-none md:focus:ring-2 md:focus:ring-blue-500 md:dark:text-gray-300
                     md:dark:border-gray-600 bg-inner-surface-light dark:bg-inner-surface-dark 
                     shadow-card-light dark:shadow-card-dark md:shadow-none md:dark:shadow-none border border-card-stroke-light dark:border-card-stroke-dark md:border-none"

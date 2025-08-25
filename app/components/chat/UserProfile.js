@@ -47,7 +47,7 @@ export default function UserProfile({ user }) {
                 <EditProfileModal user={currentUser} onClose={() => setModalOpen(false)}  />
             )}
 
-            <div className='flex md:hidden w-full items-center justify-center'>
+            <div className='block h-full md:hidden'>
                 <EditProfileModal user={currentUser}  />
             </div>
         </>

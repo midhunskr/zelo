@@ -8,7 +8,7 @@ import { getConsistentAvatar } from './DefaultAvatars'
 export default function EditProfileModal({ onClose }) {
     const { data: session, update } = useSession()
     const user = session?.user
-    const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(user?.id, 'w-[6rem] h-[6rem] xsm:w-[4rem] xsm:h-[4rem] md:w-[3rem]')
+    const { avatarUrl, backgroundColor, sizeClass } = getConsistentAvatar(user?.id, 'xs:w-[6rem] xs:h-[6rem] w-[4rem] h-[4rem] md:w-[3rem]')
 
     const [formData, setFormData] = useState({
         name: user?.name || '',
@@ -98,11 +98,11 @@ export default function EditProfileModal({ onClose }) {
 
     return (
         <div className="md:fixed h-full w-full md:inset-0 md:bg-black md:bg-opacity-70 flex items-center justify-center md:z-50">
-            <div className="h-full md:bg-light md:dark:bg-dark-accent md:p-6 rounded-xl w-full max-w-md md:shadow-lg">
+            <div className="h-full flex flex-col md:bg-light md:dark:bg-dark-accent md:p-6 rounded-xl w-full max-w-md md:shadow-lg">
                 <h2 className="hidden md:block text-lg font-semibold md:mb-4 text-text-primary-dark dark:text-text-primary-light">Edit Profile</h2>
 
-                <form onSubmit={handleSubmit} className="flex flex-col h-full md:flex-row">
-                    <div className="relative flex flex-col items-center pt-7 xsm:pt-5 pb-2 xsm:pb-1">
+                <form onSubmit={handleSubmit} className="flex-1 h-full flex flex-col md:flex-row justify-center">
+                    <div className="relative flex flex-col items-center">
                         <div
                             style={{
                                 backgroundImage: `url(${formData.image || avatarUrl})`,
@@ -114,42 +114,44 @@ export default function EditProfileModal({ onClose }) {
                             className={`${sizeClass} bg-contain bg-top bg-no-repeat rounded-full`}
                         />
                         <label className="absolute -bottom-2  bg-blue shadow-lg flex items-center rounded-full justify-center
-                            w-10 h-10 xsm:w-8 xsm:h-8 cursor-pointer border-4 border-light">
-                            <img src="/icons/edit.svg" alt="edit-icon" className='w-5 h-5 xsm:w-4 xsm:h-4' />
+                            xs:w-10 xs:h-10 w-8 h-8 cursor-pointer border-4 border-light">
+                            <img src="/icons/edit.svg" alt="edit-icon" className='xs:w-5 xs:h-5 w-4 h-4' />
                             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                         </label>
                     </div>
 
                     <div className='flex flex-col items-center justify-center py-3 xsm:py-2'>
-                        <h1 className='text-[1.4rem] xsm:text-[1.2rem] font-semibold'>{user?.name}</h1>
-                        <p className='text-text-secondary-light text-[1.1rem] xsm:text-[.9rem]'>{user?.email}</p>
+                        <h1 className='xs:text-[1.4rem] font-semibold'>{user?.name}</h1>
+                        <p className='text-text-secondary-light xs:text-[1.2rem] text-[.8rem]'>{user?.email}</p>
                     </div>
 
-                    <div className='flex flex-col space-y-4 xsm:space-y-0'>
+                    <div className='flex flex-col gap-2 xs:gap-2'>
                         <div className='flex flex-col space-y-2 items-center'>
-                            <input
-                                type="text"
-                                name="name"
-                                placeholder={user?.name}
-                                // value={formData.name}
-                                onChange={handleChange}
-                                className="w-full xsm:w-[16rem] px-4 py-3 xsm:py-[.3rem] rounded-full
-                                text-text-primary-dark dark:text-light
-                                placeholder:text-text-secondary-light xsm:placeholder:text-sm
-                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden 
+                            <div className='w-full flex xs:flex-col gap-2'>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder={user?.name}
+                                    // value={formData.name}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-[.5rem] xs:py-3 rounded-full text-text-primary-dark dark:text-light
+                                placeholder:text-text-secondary-light placeholder:text-[.8rem] xs:placeholder:text-[1rem]
+                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden
                                 border border-card-stroke-light dark:border-card-stroke-dark"
-                            />
+                                />
 
-                            <input
-                                type="email"
-                                name="email"
-                                placeholder={user?.email}
-                                // value={formData.email}
-                                onChange={handleChange}
-                                className="w-full xsm:w-[16rem] px-4 py-3 xsm:py-[.3rem] rounded-full
-                                text-text-primary-dark dark:text-light placeholder:text-text-secondary-light xsm:placeholder:text-sm
-                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden border border-card-stroke-light dark:border-card-stroke-dark"
-                            />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder={user?.email}
+                                    // value={formData.email}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-[.5rem] xs:py-3 rounded-full text-text-primary-dark dark:text-light
+                                placeholder:text-text-secondary-light placeholder:text-[.8rem] xs:placeholder:text-[1rem]
+                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden
+                                border border-card-stroke-light dark:border-card-stroke-dark"
+                                />
+                            </div>
 
                             <input
                                 type="current-password"
@@ -157,13 +159,14 @@ export default function EditProfileModal({ onClose }) {
                                 placeholder="******"
                                 // value={formData.password}
                                 onChange={handleChange}
-                                className="w-full xsm:w-[16rem] px-4 py-3 xsm:py-[.3rem] rounded-full
-                                text-text-primary-dark dark:text-light placeholder:text-text-secondary-light xsm:placeholder:text-sm
-                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden border border-card-stroke-light dark:border-card-stroke-dark"
+                                className="w-full px-4 py-[.5rem] xs:py-3 rounded-full text-text-primary-dark dark:text-light
+                                placeholder:text-text-secondary-light placeholder:text-[.8rem] xs:placeholder:text-[1rem]
+                                bg-white dark:bg-black dark:bg-opacity-15 md:hidden
+                                border border-card-stroke-light dark:border-card-stroke-dark"
                             />
                         </div>
 
-                        <div className="w-full flex flex-col items-center justify-center space-y-2">
+                        <div className="w-full flex flex-col items-center justify-center gap-2">
                             <button
                                 type="button"
                                 onClick={onClose}
@@ -175,7 +178,7 @@ export default function EditProfileModal({ onClose }) {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full xsm:w-[16rem] py-3 xsm:py-[.4rem] rounded-full text-sm bg-blue text-light hover:bg-blue"
+                                className="w-full py-[.5rem] xs:py-3 rounded-full text-[.8rem] xs:text-[1rem] bg-blue text-light hover:bg-blue"
                             >
                                 Save
                             </button>
@@ -183,7 +186,7 @@ export default function EditProfileModal({ onClose }) {
                                 type="submit"
                                 disabled={loading}
                                 onClick={() => signOut({ callbackUrl: '/signin' })}
-                                className="w-full xsm:w-[16rem] py-3 xsm:py-[.4rem] rounded-full text-sm bg-text-tertiary-light bg-opacity-10 dark:bg-opacity-25 text-primary-dark hover:bg-blue"
+                                className="w-full py-[.5rem] xs:py-3 rounded-full text-[.8rem] xs:text-[1rem] bg-text-tertiary-light bg-opacity-10 dark:bg-opacity-25 text-primary-dark hover:bg-blue"
                             >
                                 Logout
                             </button>
